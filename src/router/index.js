@@ -3,28 +3,54 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-const login = r => require.ensure([], () => r(require('@/page/login')), 'login');
-const manage = r => require.ensure([], () => r(require('@/page/manage')), 'manage');
-const home = r => require.ensure([], () => r(require('@/page/home')), 'home');
-const userList = r => require.ensure([], () => r(require('@/page/userList')), 'userList');
+const login = () => import('@/page/login/index');
+const layout = () => import('@/page/layout/index');
+const home = () => import('@/page/home/index');
+const taskMgr = () => import('@/page/taskMgr/index');
+const dataSource = () => import('@/page/taskMgr/dataSource/index');
+const dataStatistics = () => import('@/page/taskMgr/dataStatistics/index');
+const dataMess = () => import('@/page/taskMgr/dataMess/index');
+const messageMgr = () => import('@/page/messageMgr/index');
 
 const routes = [
 	{
-		path: '/',
+		path: '/login',
 		component: login
 	},
 	{
-		path: '/manage',
-		component: manage,
-		name: '',
+		path: '/',
+		component: layout,
+		name: 'Layout',
 		children: [{
-			path: '',
+			path: '/home',
+			name: 'Home',
 			component: home,
-			meta: [],
+			meta: ['数据总览'],
 		},{
-			path: '/userList',
-			component: userList,
-			meta: ['数据管理', '用户列表'],
+			path: '/taskMgr',
+			name: 'TaskMgr',
+			component: taskMgr,
+			meta: ['任务管理'],
+		},{
+			path: '/messageMgr',
+			name: 'MessageMgr',
+			component: messageMgr,
+			meta: ['聊天管理'],
+		},{
+			path: '/dataSource',
+			name: 'DataSource',
+			component: dataSource,
+			meta: ['任务管理-数据源管理'],
+		},{
+			path: '/dataStatistics',
+			name: 'DataStatistics',
+			component: dataStatistics,
+			meta: ['任务管理-数据统计'],
+		},{
+			path: '/dataMess',
+			name: 'DataMess',
+			component: dataMess,
+			meta: ['任务管理-消息管理'],
 		}]
 	}
 ]

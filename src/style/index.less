@@ -1,0 +1,75 @@
+@import './element-ui.less';
+@import './mixin.less';
+
+body{
+	height: 100%;
+	width: 100%;
+	min-width: 1000px;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	font-family: "Microsoft YaHei","Arial","黑体","宋体",sans-serif;
+	overflow: hidden;
+	font-size: 12px;
+	cursor: default;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s;
+}
+
+.fade-enter,
+.fade-leave-active {
+  opacity: 0;
+}
+
+/* fade-transform */
+.fade-transform-leave-active,
+.fade-transform-enter-active {
+  transition: all .25s;
+}
+
+.fade-transform-enter {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.fade-transform-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* breadcrumb transition */
+.breadcrumb-enter-active,
+.breadcrumb-leave-active {
+  transition: all .25s;
+}
+
+.breadcrumb-enter,
+.breadcrumb-leave-active {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.breadcrumb-move {
+  transition: all .25s;
+}
+
+.breadcrumb-leave-active {
+  position: absolute;
+}
+
+.popover-border{
+	position:relative;
+	float:right;
+	right:0px;
+	.check-info{
+		margin-left: 10px;
+		line-height: 27px;
+		background-color: #ffffff;
+		color: #74788d;
+		font-size: 12px;
+		cursor: pointer;
+	}
+}

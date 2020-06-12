@@ -1,6 +1,6 @@
 <template>
     <div class="fillcontain">
-        <head-top></head-top>
+
         <div class="table_container">
             <el-table
                 :data="tableData"
@@ -109,7 +109,6 @@
 </script>
 
 <style lang="less">
-	@import '../style/mixin';
     .table_container{
         padding: 20px;
     }
