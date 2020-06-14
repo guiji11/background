@@ -33,7 +33,7 @@
 		},
 		methods: {
 			async submitForm(formName) {
-
+				this.$router.push({ name: "Home" }); 
 			}
 		},
 	}
@@ -42,12 +42,12 @@
 <style lang="less" scoped>
 	@import '@/style/mixin';
 	.login_page{
-		background-color: #324057;
+		background-image: -webkit-gradient(linear, left top, right top, color-stop(100%, #324057), color-stop(0%, #475875));
 	}
 	.manage_tip{
 		position: absolute;
 		width: 100%;
-		top: -100px;
+		top: -90px;
 		left: 0;
 		p{
 			font-size: 34px;
@@ -55,13 +55,17 @@
 		}
 	}
 	.form_contianer{
-		.wh(320px, 180px);
-		.ctp(320px, 180px);
+		.wh(320px, 190px);
+		.ctp(320px, 190px);
 		padding: 27px;
+		top:40%;
 		border-radius: 5px;
 		text-align: center;
-		background-color: #fff;
+		border-radius: 6px;
+		box-shadow: 0 6px 10px -4px rgba(0,0,0,.15);
+		background-color: #ffffff;
 		.submit_btn{
+			margin-top: 10px;
 			width: 100%;
 			padding: 12px 20px;
 			font-size: 16px;
