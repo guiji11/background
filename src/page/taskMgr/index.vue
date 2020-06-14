@@ -94,6 +94,7 @@
 <script>
 
     export default {
+		name:'TaskMgr',
         data(){
             return {
 				listLoading:false,

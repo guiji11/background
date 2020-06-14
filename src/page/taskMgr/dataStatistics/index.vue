@@ -3,7 +3,8 @@
 		<svg-icon iconClass="return" class="return" @click.native.prevent="returnPage()"/>
 		<h2 class="title">任务管理 / 数据统计</h2>
 		<div class="echart">
-			<div class="list-chart" id="echart_list"></div>
+			<div class="list-chart" id="echart_bar"></div>
+			<div class="list-chart" style="background-color: #172b4d" id="echart_line"></div>
 		</div>
 		<div class="list">
 			<div class="table-content">
@@ -13,6 +14,23 @@
 					element-loading-text="Loading"
 					:data="dataList"
 					tooltip-effect="dark">
+					<el-table-column
+						prop="count"
+					    width="200px">
+						<template slot="header">
+							<div class="table-item">
+								<font class="title">任务名</font>
+								<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
+									<el-option
+										v-for="item in taskList"
+										:key="item.id"
+										:label="item.name"
+										:value="item.id" >
+									</el-option>
+								</el-select>
+							</div>
+						</template>
+					</el-table-column>
 					<el-table-column
 						prop="count"
 					    label="时间">
@@ -60,19 +78,29 @@
         data(){
             return {
 				listLoading:false,
-				myChart:'',
+				myChartLine:'',
+				myChartBar:'',
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
 				dataList:[{"count":122}],
-				serveNum:"0",
-				serveList:[{"id":"0","name":"全部"}],
+				taskList:[{"id":"0","name":"全部"}],
+				taskId:"0",
+				series:[],
+				arr:[
+					{"name":"成功数量","width":3,"type":"line","color":"#5e72e4","data":[210,150,367,200,400]},
+					{"name":"回复数量","width":3,"type":"line","color":"#a0650b","data":[110,50,267,100,300]},
+					{"name":"成功率","width":3,"type":"line","color":"#0ca563","data":[310,200,267,400,300]},
+					{"name":"回复率","width":3,"type":"line","color":"#f4f5f7","data":[50,250,567,100,300]},
+				]
             }
         },
         mounted(){
 			document.getElementById('taskMgr').classList.add("is-active");
-			this.myChart = echarts.init(document.getElementById('echart_list'));
-			this.lineChart([56,67,89],[51,47,89]);
+			this.myChartLine = echarts.init(document.getElementById('echart_line'));
+			this.myChartBar = echarts.init(document.getElementById('echart_bar'));
+			this.lineChart(this.myChartLine ,[56,67,89,78,90],this.arr,1);
+			this.lineChart(this.myChartBar ,[56,67,89,78,90],[{"name":"发送总量","type":"bar","color":"#fb6340","data":[210,150,367,200,400]}],2);
         },
         methods: {
 			handleCurrentChange(val){                           
@@ -84,86 +112,78 @@
 			changeServeNum(){
 
 			},
-			returnPage(){
+			changeTask(){
 
+            },
+			returnPage(){
+				this.$router.push({ name: "TaskMgr" }); 
 			},
             async getUsers(){
                 const Users = await getUserList({offset: this.offset, limit: this.limit});
 			},
-			lineChart(dataX,dataY){                                                           //折线图
-				this.myChart.setOption({
+			lineChart(show, dataX, dataY, type){                                                      
+				this.lineDataStyle(dataY);
+				if ( type ==1 ){
+					var legend = {
+						textStyle: {
+							fontSize: 12,
+							color: '#ffffff'
+						},
+						data:['成功数量','回复数量','成功率','回复率']
+					}
+				}else if ( type ==2 ){
+					var legend = {
+						data:['发送总量']
+					}
+				}
+				show.setOption({
 					tooltip: {
 						trigger: 'axis'
 					},
-					legend: {         //图例名
-						data:['发送总量','成功数量','回复数量','成功率','回复率']
-					},
+					legend: legend,                                                           //图例名
 					grid: {                                                                   //折线图位置                                                  
-						left: "10%",
-						bottom: "0%",
-						top: "0%",
-						right:"10%",
+						left: "5%",
+						bottom: "3%",
+						top: "12%",
+						right:"5%",
 						containLabel: false
 					},
 					xAxis: {                                                                  //横坐标轴
 						type: "category",
 						boundaryGap: false,
-						data: ['8-1','8-2','8-3','8-4','8-5','8-6','8-7'],
+						data: dataX,
 						show:false,                                                           //隐藏坐标轴
 					},
 					yAxis: [{                                                                 //纵坐标轴
 						type: 'value',
 						show:false,
 					}],
-					series: [
-						{
-							name:'发送总量',
-							type:'line',
-							stack: '总量',
-							color:['#1296db'],
-							width:"1.5",					
-							data:[120, 132, 101, 134, 90, 230, 210],
-							
-						},
-						{
-							name:'成功数量',
-							type:'line',
-							stack: '总量',
-							color:['#ef8f3a'],
-							width:"1.5",
-							data:[220, 182, 191, 234, 290, 330, 310],
-							
-						},
-						{
-							name:'回复数量',
-							type:'line',
-							stack: '总量',
-							color:['#7dd850'],
-							width:"1.5",
-							data:[150, 232, 201, 154, 190, 330, 410],
-							
-						},  
-						{
-							name:'成功率',
-							type:'line',
-							stack: '总量',
-							color:['#4675d2'],
-							width:"1.5",
-							data:[420, 132, 100, 134, 90, 20, 210],
-							
-						},
-						{
-							name:'回复率',
-							type:'line',
-							stack: '总量',
-							color:['#3C599B'],
-							width:"1.5",
-							data:[420, 132, 100, 134, 90, 20, 210],
-							
-						},  
-					]
+					series: this.series
 				});
-			}
+			},
+			lineDataStyle(arr){
+				this.series = [];
+				for ( var i=0; i<arr.length;i++ ){
+					var obj = {
+						type: arr[i].type,
+						name:arr[i].name,
+						barWidth:15,
+						symbol: 'none',                                                       //拐点标记隐藏掉
+						smooth:true,                                                          //拐点平滑
+						itemStyle: {
+							normal: {
+								color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
+									offset: 0,
+									color: arr[i].color
+								}]),
+								lineStyle: { width:arr[i].width }
+							},
+						},		
+						data:arr[i].data,					
+					};
+					this.series.push(obj);
+				}
+			},
         },
     }
 </script>
@@ -171,15 +191,15 @@
 <style lang="less" scoped>
 .return{
     position: absolute;
-    margin-left: 19px;
+    margin-left: 18px;
     padding-top: 11px;
     height: 24px;
-    width: 52px;
+    width: 24px;
     cursor: pointer;
 }
 .title{
 	position:relative;
-	margin-left: 79px;
+	margin-left: 49px;
 	padding-top: 15px;
 	font-size: 12px;	
 	color: #34404b;
@@ -188,28 +208,25 @@
 	position: relative;
 	margin: 15px 19px;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content:space-between;
     cursor: default;
-	height: 240px;
-	background-color: #ffffff;
-	box-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.04);
-	border-radius: 3px;
+	height: 280px;
 	.list-chart{
-		position: absolute;
-		margin-top: 10px;
-		left: 15px;
-		right: 15px;
-		height: 200px;
+		position: relative;
+		padding-top: 10px;
+		width:49%;
+		height: 270px;
 		background-color: #ffffff;
-		border-radius: 3px;
+		border-radius: 6px;
+		overflow: hidden;
+		box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
 	}
 }
-.list{
+.list {
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:305px;
+	top:345px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{
@@ -228,6 +245,29 @@
 			font-size: 12px;
 			color: #828f9c;
 			cursor:pointer;
+		}
+		.table-item{
+			padding-left: 0px;
+			margin-right: 21px;
+			float:left;
+			.title{
+				position: relative;
+				margin-left: 0px;
+				padding-top: 15px;
+				margin-right: 0px;
+				font-weight: 500;
+				font-size: 12px;
+				font-stretch: normal;
+				letter-spacing: 0.36px;
+				color: #595d6e;
+			}
+			.select-border {
+				padding-left: 10px;
+				width: 116px;
+				height: 34px;
+				background-color: #ffffff;
+				border-radius: 4px;
+			}
 		}
 	}
 	.table-pagination /deep/{

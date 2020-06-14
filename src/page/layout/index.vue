@@ -4,7 +4,7 @@
 			<el-menu
 				:default-active="defaultActive"
 				text-color="#768492"
-				active-text-color="#4675d2" theme="dark" router>
+				active-text-color="#3092fc" theme="dark" router>
 				<el-menu-item index="home"><svg-icon iconClass="data-screening" /><span class="menu-name">数据总览</span></el-menu-item>
 				<el-menu-item index="taskMgr" id="taskMgr"><svg-icon iconClass="task-mgr" /><span class="menu-name">任务管理</span></el-menu-item>
 				<el-menu-item index="messageMgr"><svg-icon iconClass="mess-mgr" /><span class="menu-name">聊天管理</span></el-menu-item>
@@ -51,7 +51,7 @@
 		.el-menu-item:hover,
 		.is-active{
 			background-color:#f0f0f0;
-			color: #4675d2;
+			color: #3092fc;
 		}
 	}
 	.aside{

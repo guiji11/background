@@ -60,16 +60,41 @@ body{
   position: absolute;
 }
 
+::-webkit-scrollbar {
+    width: 7px;
+}
+    
+::-webkit-scrollbar-track {
+    background-color: none;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 50px 50px;
+}
+
+::-webkit-scrollbar-button {
+    display:none
+}
+
+::-webkit-scrollbar-corner {
+    background-color: black;
+}
+
 .popover-border{
 	position:relative;
 	float:right;
 	right:0px;
 	.check-info{
 		margin-left: 10px;
-		line-height: 27px;
+		line-height: 30px;
 		background-color: #ffffff;
 		color: #74788d;
 		font-size: 12px;
 		cursor: pointer;
 	}
+}
+
+.el-table .cell, .el-table th div{
+	padding-right: 0px;
 }

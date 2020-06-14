@@ -1,18 +1,27 @@
 <template>
     <div class="fillcontain">
 		<h2 class="title">数据总览</h2>
-		<div class="item-list">
-			<div class="info-num">
-				<div class="num">100000</div>
-				<div class="num-icon">账号总数</div>
+		<div class="card-list">
+			<div class="card-border margin-right">
+				<div class="card-content">
+					<svg-icon iconClass="acc-count" class="card-icon"/>
+					<div class="card-value">1000000</div>
+				</div>
+				<div class="card-name">账号总数</div>
 			</div>
-			<div class="info-num">
-				<div class="num">0</div>
-				<div class="num-icon">封号总数</div>
+			<div class="card-border margin-right" style="flex-grow: 1;">
+				<div class="card-content">
+					<svg-icon iconClass="acc-block" class="card-icon"/>
+					<div class="card-value">1000000</div>
+				</div>
+				<div class="card-name">封号总数</div>
 			</div>
-			<div class="info-num">
-				<div class="num">0</div>
-				<div class="num-icon">今日发消息数</div>
+			<div class="card-border">
+				<div class="card-content">
+					<svg-icon iconClass="acc-mess" class="card-icon"/>
+					<div class="card-value">1000000</div>
+				</div>
+				<div class="card-name">今日发消息数</div>
 			</div>
 		</div>
 		<div class="table-title">
@@ -131,38 +140,59 @@
 	font-size: 12px;	
 	color: #34404b;
 }
-.item-list{
+.card-list{
 	position: relative;
 	margin: 15px 19px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+	display: flex;
     cursor: default;
-	height: 120px;
-	background-color: #ffffff;
-	box-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.04);
-	border-radius: 3px;
-	.info-num{
+	height: 138px;
+	.card-border{
 		position:relative;
-		font-family: "Arial","Microsoft YaHei","黑体","宋体",sans-serif;
-		font-weight: normal;
-		font-stretch: normal;
-		width: 43vw;
-		.num{
-			height: 30px;
-			line-height: 30px;
-			color: #4675d2;
-			font-size: 32px;
-			text-align: center;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-		.num-icon{
-			color: #768492;
-			text-align: center;
+		width: 31%;
+		height: 100%;
+		background-color: #ffffff;
+		box-shadow: 0 6px 10px -4px rgba(0,0,0,.15);
+		border-radius: 6px;
+		.card-content{
+			position:relative;
+			border-bottom: 1px solid #eeeeee;
 			padding-top: 15px;
+			width: 90%;
+			margin-left: auto;
+			margin-right: auto;
+			height: 77px;
+			.card-value{
+				position: absolute;
+				top: 35px;
+				right: 0px;
+				height: 30px;
+				line-height: 30px;
+				color: #74788d;
+				font-size: 30px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.card-icon{
+				margin-left: 10px;
+				color: #768492;
+				height:42px;
+				width:42px;
+				padding-top: 15px;
+			}
 		}
+		.card-name{
+			margin-left: auto;
+			margin-right: auto;
+			padding-top: 12px;
+			color: #a49e93;
+			font-size: 14px;
+			font-weight: 500;
+			width: 90%;
+		}
+	}
+	.margin-right{
+		margin-right: 30px;
 	}
 }
 .table-title{
@@ -193,7 +223,7 @@
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:230px;
+	top:250px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{

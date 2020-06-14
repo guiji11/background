@@ -1,26 +1,14 @@
 <template>
     <div class="fillcontain">
-		<h2 class="title">数据总览</h2>
-		<div class="item-list">
-			<div class="info-num">
-				<div class="num">100000</div>
-				<div class="num-icon">账号总数</div>
-			</div>
-			<div class="info-num">
-				<div class="num">0</div>
-				<div class="num-icon">封号总数</div>
-			</div>
-			<div class="info-num">
-				<div class="num">0</div>
-				<div class="num-icon">今日发消息数</div>
-			</div>
-		</div>
+		<svg-icon iconClass="return" class="return" @click.native.prevent="returnPage()"/>
+		<h2 class="title">任务管理 / 消息管理</h2>
+		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">创建消息</el-button>
 		<div class="table-title">
 			<div class="table-item">
-				<font class="title">服务器编号</font>
-				<el-select v-model="serveNum" placeholder="全部" @change="changeServeNum" class="select-border"  >
+				<font class="title">任务名</font>
+				<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
 					<el-option
-						v-for="item in serveList"
+						v-for="item in taskList"
 						:key="item.id"
 						:label="item.name"
 						:value="item.id" >
@@ -37,39 +25,35 @@
 					:data="dataList"
 					tooltip-effect="dark">
 					<el-table-column
-					    label="服务器编号">
-					    <template scope="scope">
-							<span style="font-weight:600;">S{{scope.row.count}}</span>
-						</template>
+						prop="count"
+					    label="时间">
 					</el-table-column>
 					<el-table-column
 						prop="count"
-					    label="在线数">
+					    label="发送内容">
 					</el-table-column>
 					<el-table-column
 						prop="count"
-					    label="今日封号数">
+					    label="目标发送量">
 					</el-table-column>
 					<el-table-column
 						prop="count"
-					    label="今日发消息数">
+					    label="已发送量">
 					</el-table-column>
 					<el-table-column
 						prop="count"
-					    label="今日回复数">
+					    label="回复率">
 					</el-table-column>
 					<el-table-column
 						prop="count"
-					    label="累计发消息数">
+					    label="状态">
 					</el-table-column>
 					<el-table-column
-						prop="count"
-					    label="累计回复数">
-					</el-table-column>
-					<el-table-column
-					    label="详情">
-					    <template scope="scope">
-							<button class="check-info" @click="checkInfo(scope.row)">查看</button>
+						width="150px"
+					    label="操作">
+						 <template scope="scope">
+							<button class="check-info" @click="checkInfo(scope.row)">编辑</button>
+							<button class="check-info margin" @click="checkInfo(scope.row)">开始</button>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -89,19 +73,18 @@
 </template>
 
 <script>
-
+	import echarts from 'echarts';
     export default {
 		name:"DataMess",
         data(){
             return {
 				listLoading:false,
-				multipleSelection:[],
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
 				dataList:[{"count":122}],
-				serveNum:"0",
-				serveList:[{"id":"0","name":"全部"}],
+				taskList:[{"id":"0","name":"全部"}],
+				taskId:"0",
             }
         },
         mounted(){
@@ -114,60 +97,49 @@
 			checkInfo(){
 
 			},
-			changeServeNum(){
+			showDialog(){
 
 			},
-            async getUsers(){
-                const Users = await getUserList({offset: this.offset, limit: this.limit});
-            }
+			changeTask(){
+
+            },
+			returnPage(){
+				this.$router.push({ name: "TaskMgr" }); 
+			},		
         },
     }
 </script>
 
 <style lang="less" scoped>
+.return{
+    position: absolute;
+    margin-left: 18px;
+    padding-top: 16px;
+    height: 24px;
+    width: 24px;
+    cursor: pointer;
+}
 .title{
-	position:relative;
-	margin-left: 19px;
-	padding-top: 15px;
+	position:absolute;
+	margin-left: 49px;
+	padding-top: 20px;
 	font-size: 12px;	
 	color: #34404b;
 }
-.item-list{
-	position: relative;
-	margin: 15px 19px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: default;
-	height: 120px;
-	background-color: #ffffff;
-	box-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.04);
-	border-radius: 3px;
-	.info-num{
-		position:relative;
-		font-family: "Arial","Microsoft YaHei","黑体","宋体",sans-serif;
-		font-weight: normal;
-		font-stretch: normal;
-		width: 43vw;
-		.num{
-			height: 30px;
-			line-height: 30px;
-			color: #4675d2;
-			font-size: 32px;
-			text-align: center;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-		.num-icon{
-			color: #768492;
-			text-align: center;
-			padding-top: 15px;
-		}
-	}
+.create-mess-btn{
+	position:absolute;
+	margin-top: 12px;
+	float:right;
+	right:22px;
+	width: 130px;
+	height: 36px;
+	background-color: #278fff;
+	border-radius: 4px;
+	color: #ffffff;
 }
 .table-title{
-	position: relative;
+    position: relative;
+    top: 55px;
     left: 0px;
     right: 320px;
     height: 34px;
@@ -175,6 +147,9 @@
 		margin-right: 21px;
 		float:left;
 		.title{
+			position: relative;
+			margin-left: 19px;
+			padding-top: 15px;
 			margin-right: 9px;
 			font-weight: 500;
 			font-size: 12px;
@@ -194,7 +169,7 @@
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:230px;
+	top:105px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{
@@ -213,6 +188,9 @@
 			font-size: 12px;
 			color: #828f9c;
 			cursor:pointer;
+		}
+		.margin{
+			margin-left: 10px;
 		}
 	}
 	.table-pagination /deep/{
