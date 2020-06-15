@@ -1,6 +1,10 @@
 <template>
 	<el-container class="manage-page">
 		<el-aside class="aside">
+			<div class="logout" @click="logout()">
+	            <span class= "person-name">{{name}}</span>
+				<svg-icon iconClass="logout" class="logout-icon"/>
+	        </div>  
 			<el-menu
 				:default-active="defaultActive"
 				text-color="#768492"
@@ -21,12 +25,31 @@
 </template>
 
 <script>
+	import { removeToken, getUser} from '@/utils/auth'
+	import { MessageBox } from 'element-ui'
     export default {
+		data(){
+            return {
+                name:'admin',
+            }
+        },
 		computed: {
 			defaultActive: function(){
 				return this.$route.path.replace('/', '');
 			},
 		},
+		methods:{
+			logout(){
+	   			MessageBox.confirm('是否退出登录？', '', {
+		          confirmButtonText: '确定',
+		          showCancelButton:false,
+		          type: 'warning'
+		        }).then(() => {
+		        	removeToken();
+		        	this.$router.push({ name: 'Login' });
+		        })
+			}
+		}
     }
 </script>
 
@@ -40,7 +63,7 @@
 			background-color: #f7f7f7;
 		}
 		.el-menu{
-			margin-top: 46px;
+			margin-top: 26px;
 			min-height: 100%;
 			border-right:solid 1px #f0f0f0;
 			background-color:#f7f7f7;
@@ -63,7 +86,35 @@
 		border-right: solid 1px #f0f0f0;
 		background-color: #f7f7f7;
 		box-shadow: 0px 2px 8px 0.6px rgba(21, 63, 105, 0.03);
-    	overflow: hidden;
+		overflow: hidden;
+		.logout{
+			position: relative;
+			left: 15px;
+			margin-top: 20px;
+			border-radius: 13px;
+			width: 146px;
+			height: 26px;
+			background-color: #f0f0f0;
+			color: #6a7988;
+			border: none;
+			cursor: pointer;
+			.person-name{
+				position:absolute;
+				line-height: 26px;
+				margin-left: 13px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				max-width: 100px;
+			}
+			.logout-icon{
+				position:absolute;
+				right: 10px;
+				top: 4px;
+				width:16px;
+				height:18px;
+			}
+		}
 	}
 	.right-main{
 		position: absolute;

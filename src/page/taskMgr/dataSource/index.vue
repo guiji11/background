@@ -133,7 +133,7 @@
 	right:22px;
 	width: 130px;
 	height: 36px;
-	background-color: #278fff;
+	background-color: #7a9e9f;
 	border-radius: 4px;
 	color: #ffffff;
 }

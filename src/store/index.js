@@ -1,38 +1,20 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {getAdminInfo} from '@/api/getData'
-
+import getters from './getters'
 Vue.use(Vuex)
 
-const state = {
-	adminInfo: {
-		avatar: 'default.jpg'
-	},
-}
+const modulesFiles = require.context('./modules', true, /\.js$/)                      //遍历所有modules下js结尾的文件，并遍历子目录
 
-const mutations = {
-	saveAdminInfo(state, adminInfo){
-		state.adminInfo = adminInfo;
-	}
-}
 
-const actions = {
-	async getAdminData({commit}){
-		try{
-			const res = await getAdminInfo()
-			if (res.status == 1) {
-				commit('saveAdminInfo', res.data);
-			}else{
-				throw new Error(res.type)
-			}
-		}catch(err){
-			// console.log(err.message)
-		}
-	}
-}
+const modules = modulesFiles.keys().reduce((modules, modulePath) => {
+  const moduleName = modulePath.replace(/^\.\/(.*)\.\w+$/, '$1')
+  const value = modulesFiles(modulePath)
+  modules[moduleName] = value.default
+  return modules
+}, {})
 
-export default new Vuex.Store({
-	state,
-	actions,
-	mutations,
+const store = new Vuex.Store({
+  modules,
+  getters
 })
+export default store

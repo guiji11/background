@@ -1,6 +1,7 @@
 <template>
     <div class="fillcontain">
 		<h2 class="title">任务管理</h2>
+		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">创建任务</el-button>
 		<div class="table-title">
 			<div class="table-item">
 				<font class="title">任务名</font>
@@ -88,16 +89,18 @@
 				</el-pagination>
 			</div>
 		</div>
+		<create-task v-if="showCreateTask" @changeStatus="closeDialog"></create-task>
     </div>
 </template>
 
 <script>
-
+	import CreateTask from '@/components/CreateTask';
     export default {
 		name:'TaskMgr',
         data(){
             return {
 				listLoading:false,
+				showCreateTask:false,
 				multipleSelection:[],
 				currentPage:1,
 				pageSize:100,
@@ -106,7 +109,10 @@
 				serveNum:"0",
 				serveList:[{"id":"0","name":"全部"}],
             }
-        },
+		},
+		components: {
+			CreateTask,
+		},
 		computed: {
 			key: function(){
 				return this.$route.path.replace('/', '');
@@ -121,7 +127,13 @@
             },
             changeTask(){
 
-            },
+			},
+			showDialog(){
+				this.showCreateTask = true;
+			},
+			closeDialog(){
+				this.showCreateTask = false;
+			},
             async getUsers(){
                 const Users = await getUserList({offset: this.offset, limit: this.limit});
             }
@@ -131,15 +143,26 @@
 
 <style lang="less" scoped>
 .title{
-	position:relative;
+	position:absolute;
 	margin-left: 19px;
-    padding-top: 15px;
+	padding-top: 20px;
 	font-size: 12px;	
 	color: #34404b;
 }
+.create-mess-btn{
+	position:absolute;
+	margin-top: 12px;
+	float:right;
+	right:22px;
+	width: 130px;
+	height: 36px;
+	background-color: #7a9e9f;
+	border-radius: 4px;
+	color: #ffffff;
+}
 .table-title{
     position: relative;
-    margin-top: 15px;
+    top: 55px;
     left: 0px;
     right: 320px;
     height: 34px;
@@ -147,6 +170,9 @@
 		margin-right: 21px;
 		float:left;
 		.title{
+			position: relative;
+			margin-left: 19px;
+			padding-top: 15px;
 			margin-right: 9px;
 			font-weight: 500;
 			font-size: 12px;
@@ -166,7 +192,7 @@
     position: absolute;
     left: 19px;
     right: 19px;
-    top: 96px;
+    top: 105px;
     bottom: 20px;
     border-radius: 4px;
 	.table-content{

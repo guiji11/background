@@ -7,13 +7,13 @@
 		  		</div>
 		    	<el-form :model="loginForm" ref="loginForm">
 					<el-form-item prop="username">
-						<el-input v-model="loginForm.username" placeholder="用户名"><span>dsfsf</span></el-input>
+						<el-input v-model="loginForm.username" placeholder="用户名"></el-input>
 					</el-form-item>
 					<el-form-item prop="password">
 						<el-input type="password" placeholder="密码" v-model="loginForm.password"></el-input>
 					</el-form-item>
 					<el-form-item>
-				    	<el-button type="primary" @click="submitForm('loginForm')" class="submit_btn">登录</el-button>
+				    	<el-button type="primary" @click.native.prevent="handleLogin()" class="submit_btn">登录</el-button>
 				  	</el-form-item>
 				</el-form>
 	  		</section>
@@ -22,6 +22,8 @@
 </template>
 
 <script>
+	import { setToken,setUser,setUserId,setUserType } from '@/utils/auth'
+	import login from '@/api/login';
 	export default {
 	    data(){
 			return {
@@ -32,9 +34,32 @@
 			}
 		},
 		methods: {
-			async submitForm(formName) {
-				this.$router.push({ name: "Home" }); 
-			}
+			handleLogin() {
+				var req = {
+					'username': this.loginForm.username,
+					'pwd': this.loginForm.password,
+				}
+				login(JSON.stringify(req)).then(data => {
+					if ( data.rtn == 0 ){
+						setToken(data.data.token);
+						setUserType(data.data.type);
+						setUser(this.loginForm.username);
+						setUserId(data.data.userid);
+						if ( data.data.type == 1 ){
+							this.$router.push({ name: 'Home' });
+						}else{
+							this.$router.push({ name: 'TaskMgr' });
+						}
+					}else{
+						this.$message({
+							message: data.msg,
+							center: true,
+							type: 'error',
+							duration: 3 * 1000
+						});
+					}
+				})
+			},
 		},
 	}
 </script>
