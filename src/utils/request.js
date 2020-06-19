@@ -12,6 +12,7 @@ service.interceptors.request.use(
 	//    // ['X-Token'] is a custom headers key
 	//    //config.headers['X-Token'] = getToken()
 	//  }
+		config.headers['content-type'] = 'application/json';
 		return config
 	},
 	error => {

@@ -2,19 +2,6 @@
     <div class="fillcontain">
 		<h2 class="title">任务管理</h2>
 		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">创建任务</el-button>
-		<div class="table-title">
-			<div class="table-item">
-				<font class="title">任务名</font>
-				<el-select v-model="serveNum" placeholder="全部" @change="changeTask" class="select-border"  >
-					<el-option
-						v-for="item in serveList"
-						:key="item.id"
-						:label="item.name"
-						:value="item.id" >
-					</el-option>
-				</el-select>
-			</div>
-		</div>
 		<div class="table-list">
 			<div class="table-content">
 				<el-table
@@ -26,54 +13,40 @@
 					<el-table-column
 					    label="任务名">
 					    <template scope="scope">
-							<span style="font-weight:600;">S{{scope.row.count}}</span>
+							<span style="font-weight:600;">{{scope.row.job_name}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column
-						prop="count"
-					    label="创建人">
-					</el-table-column>
-					<el-table-column
-						prop="count"
+						prop="time"
 					    label="创建时间">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="send_num"
 					    label="已下发消息数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
 					    label="成功下发数/成功率">
+						<template scope="scope">
+							<span>{{scope.row.succ_send_num+"/"+scope.row.succ_send_per}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
-						prop="count"
 					    label="回复数/回复率">
+						<template scope="scope">
+							<span>{{scope.row.reply_num+"/"+scope.row.reply_num_per}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="remain_quota"
 					    label="剩余可用数据">
 					</el-table-column>
-                    <el-table-column
-						prop="count"
-					    label="状态">
-					</el-table-column>
 					<el-table-column
+						width="250px"
 					    label="任务管理">
 					    <template scope="scope">
-							<svg-icon iconClass="more" class="info-icon"/>
-                            <el-popover
-                            placement="right"
-                            width="79"
-                            :visible-arrow="false"
-                            transition="fade-transform"
-                            trigger="hover">
-                                <div class="popover-border">
-                                    <button class="check-info" @click="checkInfo(scope.row,'DataStatistics')">数据统计</button>
-                                    <button class="check-info" @click="checkInfo(scope.row,'DataMess')">消息管理</button>
-                                    <button class="check-info" @click="checkInfo(scope.row,'DataSource')">数据源管理</button>
-                                </div>
-                                <el-button slot="reference" class="popover-btn"></el-button>
-                            </el-popover>
+							<button class="check-info" @click="checkInfo(scope.row,'DataStatistics')">数据统计</button>
+							<button class="check-info margin" @click="checkInfo(scope.row,'DataMess')">消息</button>
+							<button class="check-info margin" @click="checkInfo(scope.row,'DataSource')">数据源</button>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -89,12 +62,15 @@
 				</el-pagination>
 			</div>
 		</div>
-		<create-task v-if="showCreateTask" @changeStatus="closeDialog"></create-task>
+		<create-task :dialogVisible="showCreateTask" @changeStatus="closeDialog"></create-task>
     </div>
 </template>
 
 <script>
 	import CreateTask from '@/components/CreateTask';
+	import task from '@/api/task-mgr';
+	import { getToken, setJobId } from '@/utils/auth';
+	import moment from 'moment';
     export default {
 		name:'TaskMgr',
         data(){
@@ -105,9 +81,7 @@
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
-				dataList:[{"count":122,"id":6}],
-				serveNum:"0",
-				serveList:[{"id":"0","name":"全部"}],
+				dataList:[],
             }
 		},
 		components: {
@@ -118,12 +92,16 @@
 				return this.$route.path.replace('/', '');
 			},
 		},
+		mounted(){
+			this.getTaskList();
+		},
         methods: {
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 			},
 			checkInfo(obj,name){
-               this.$router.push({ name: name,query:{"taskId":obj.id} }); 
+				setJobId(obj.job_id);
+				this.$router.push({ name: name}); 
             },
             changeTask(){
 
@@ -131,11 +109,34 @@
 			showDialog(){
 				this.showCreateTask = true;
 			},
-			closeDialog(){
+			closeDialog(data){
 				this.showCreateTask = false;
+				if ( data ){
+					this.getTaskList();
+				}
 			},
-            async getUsers(){
-                const Users = await getUserList({offset: this.offset, limit: this.limit});
+            async getTaskList(){
+				var req = {
+					"token":getToken()
+				}
+				const data = await task.getTaskList(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					var list = data.data.list || [];
+					for ( var i=0; i<list.length;i++ ){
+						var succ_send_per = 0;
+						var reply_num_per = 0;
+						if ( list[i].send_num >0 ){
+							succ_send_per = Math.round(list[i].succ_send_num/list[i].send_num*100);
+						}
+						if ( list[i].succ_send_num >0 ){
+							reply_num_per = Math.round(list[i].reply_num/list[i].succ_send_num*100);
+						}
+						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
+						this.$set(list[i],"succ_send_per",succ_send_per+"%");
+						this.$set(list[i],"reply_num_per",reply_num_per+"%");
+					}
+					this.dataList = list;
+				}
             }
         },
     }
@@ -192,7 +193,7 @@
     position: absolute;
     left: 19px;
     right: 19px;
-    top: 105px;
+    top: 65px;
     bottom: 20px;
     border-radius: 4px;
 	.table-content{
@@ -211,7 +212,10 @@
 			font-size: 12px;
 			color: #828f9c;
 			cursor:pointer;
-        }
+		}
+		.margin{
+			margin-left: 10px;
+		}
         .info-icon{
             position: absolute;
             margin-left: 2px;
@@ -228,7 +232,8 @@
             cursor: pointer;
             min-width: 24px;
             min-height: 23px;
-            opacity: 0;
+			opacity: 0;
+			z-index: 10;
         }
 	}
 	.table-pagination /deep/{

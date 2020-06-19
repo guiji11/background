@@ -9,9 +9,9 @@
 				<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
 					<el-option
 						v-for="item in taskList"
-						:key="item.id"
-						:label="item.name"
-						:value="item.id" >
+						:key="item.job_id"
+						:label="item.job_name"
+						:value="item.job_id" >
 					</el-option>
 				</el-select>
 			</div>
@@ -25,35 +25,46 @@
 					:data="dataList"
 					tooltip-effect="dark">
 					<el-table-column
-						prop="count"
+						prop="time"
 					    label="时间">
 					</el-table-column>
 					<el-table-column
-						prop="count"
 					    label="发送内容">
+						<template scope="scope">
+							<el-tooltip effect="dark" :content="scope.row.msg" placement="top">
+								<span>{{scope.row.msg}}</span>
+							</el-tooltip>
+						</template>
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="quota"
 					    label="目标发送量">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="send_num"
 					    label="已发送量">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="reply_num"
+					    label="回复数量">
+					</el-table-column>
+					<el-table-column
+						prop="reply_per"
 					    label="回复率">
 					</el-table-column>
 					<el-table-column
-						prop="count"
 					    label="状态">
+						<template scope="scope">
+							<span>{{scope.row.status==1?'开始':'停止'}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
-						width="150px"
+						width="180px"
 					    label="操作">
 						 <template scope="scope">
 							<button class="check-info" @click="checkInfo(scope.row)">编辑</button>
-							<button class="check-info margin" @click="checkInfo(scope.row)">开始</button>
+							<button class="check-info margin" @click="checkInfo(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
+							<svg-icon iconClass="delete" class="margin delete"/>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -69,11 +80,15 @@
 				</el-pagination>
 			</div>
 		</div>
+		<create-message :job_id="jobId" :dialogVisible="showMessDialog" @changeStatus="closeDialog"></create-message>
     </div>
 </template>
 
 <script>
-	import echarts from 'echarts';
+	import CreateMessage from '@/components/CreateMessage';
+	import task from '@/api/task-mgr';
+	import { getToken, getJobId, setJobId } from '@/utils/auth';
+	import moment from 'moment';
     export default {
 		name:"DataMess",
         data(){
@@ -82,13 +97,22 @@
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
-				dataList:[{"count":122}],
-				taskList:[{"id":"0","name":"全部"}],
-				taskId:"0",
+				dataList:[],
+				taskList:[],
+				showMessDialog:false,
+				jobId:getJobId(),
+				taskId:"",
             }
-        },
+		},
+		components: {
+			CreateMessage,
+		},
+		created(){
+			this.getTaskList();
+		},
         mounted(){
 			document.getElementById('taskMgr').classList.add("is-active");
+			this.getMessList();
         },
         methods: {
 			handleCurrentChange(val){                           
@@ -98,14 +122,51 @@
 
 			},
 			showDialog(){
-
+				this.showMessDialog = true;
+			},
+			closeDialog(data){
+				this.showMessDialog = false;
+				if ( data ){
+					this.getMessList();
+				}
 			},
 			changeTask(){
-
+				this.jobId = this.taskId;
+				setJobId(this.taskId);
+				this.getMessList();
             },
 			returnPage(){
 				this.$router.push({ name: "TaskMgr" }); 
-			},		
+			},
+			async getMessList(){
+				var req = {
+					"token":getToken(),
+					"job_id":this.jobId
+				}
+				const data = await task.getMess(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					var list = data.data.list || [];
+					for ( var i=0; i<list.length;i++ ){
+						var reply_per = 0;
+						if ( list[i].succ_send_sum >0 ){
+							reply_per = Math.round(list[i].reply_num/list[i].succ_send_sum*100);
+						}
+						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
+						this.$set(list[i],"reply_per",reply_per+"%");
+					}
+					this.dataList = list;
+				}
+			},
+			async getTaskList(){
+				var req = {
+					"token":getToken()
+				}
+				const data = await task.getTaskList(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					this.taskList = data.data.list || [];
+					this.taskId = this.jobId;
+				}
+            }		
         },
     }
 </script>
@@ -188,6 +249,13 @@
 			font-size: 12px;
 			color: #828f9c;
 			cursor:pointer;
+		}
+		.delete{
+			position: absolute;
+			margin-top: 1px;
+			width: 23px;
+			height: 23px;
+			cursor: pointer;
 		}
 		.margin{
 			margin-left: 10px;

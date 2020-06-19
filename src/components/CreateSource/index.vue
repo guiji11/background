@@ -1,6 +1,6 @@
 <template>
 	<el-dialog
-	title="创建任务"
+	title="创建数据源"
 	:visible.sync="currentIndex"
 	@close ="callback(false)"
 	destroy-on-close
@@ -10,7 +10,7 @@
 	center>
 		<div class="list">
 			<div class="item">
-				<font>任务名 : </font>
+				<font>小组ID : </font>
 				<el-input v-model="taskName" type="text"/>
 			</div>
 		</div>
@@ -31,6 +31,10 @@ export default {
 		}
 	},
 	props:{
+		job_id: {
+		  type: String,
+		  required: true
+		},
 		dialogVisible: {
 		  type: Boolean,
 		  required: true
@@ -45,9 +49,10 @@ export default {
 		async complete(){
 			var req = {
 				"token":getToken(),
-				"job_name":this.taskName
+				"job_id":this.job_id,
+				"fb_group_id":this.taskName
 			}
-			const data = await task.createTask(JSON.stringify(req));
+			const data = await task.setSource(JSON.stringify(req));
 			if ( data.rtn == 0 ){
 				this.callback(true);
 			}else {

@@ -10,7 +10,7 @@
 						<el-input v-model="loginForm.username" placeholder="用户名"></el-input>
 					</el-form-item>
 					<el-form-item prop="password">
-						<el-input type="password" placeholder="密码" v-model="loginForm.password"></el-input>
+						<el-input type="password" placeholder="密码" v-model="loginForm.password" @keyup.enter.native="handleLogin"></el-input>
 					</el-form-item>
 					<el-form-item>
 				    	<el-button type="primary" @click.native.prevent="handleLogin()" class="submit_btn">登录</el-button>
@@ -36,7 +36,7 @@
 		methods: {
 			handleLogin() {
 				var req = {
-					'username': this.loginForm.username,
+					'name': this.loginForm.username,
 					'pwd': this.loginForm.password,
 				}
 				login(JSON.stringify(req)).then(data => {
@@ -67,7 +67,9 @@
 <style lang="less" scoped>
 	@import '@/style/mixin';
 	.login_page{
-		background-image: -webkit-gradient(linear, left top, right top, color-stop(100%, #324057), color-stop(0%, #475875));
+		background-image: url("../../../public/background.png");
+		opacity: .9;
+		background-color: #5e5e5e;
 	}
 	.manage_tip{
 		position: absolute;

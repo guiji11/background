@@ -15,44 +15,44 @@
 					:data="dataList"
 					tooltip-effect="dark">
 					<el-table-column
-						prop="count"
+						prop="name"
 					    width="200px">
-						<template slot="header">
+						<template slot="header" slot-scope="scope">
 							<div class="table-item">
 								<font class="title">任务名</font>
 								<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
 									<el-option
 										v-for="item in taskList"
-										:key="item.id"
-										:label="item.name"
-										:value="item.id" >
+										:key="item.job_id"
+										:label="item.job_name"
+										:value="item.job_id" >
 									</el-option>
 								</el-select>
 							</div>
 						</template>
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="time"
 					    label="时间">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="send_num"
 					    label="发送总量">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="send_num"
 					    label="成功数量">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="send_num"
 					    label="成功率">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="reply_num"
 					    label="回复数量">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="reply_per"
 					    label="回复率">
 					</el-table-column>
 				</el-table>
@@ -72,6 +72,9 @@
 </template>
 
 <script>
+	import task from '@/api/task-mgr';
+	import { getToken, getJobId, setJobId } from '@/utils/auth';
+	import moment from 'moment';
 	import echarts from 'echarts';
     export default {
 		name:"DataStatistics",
@@ -83,10 +86,10 @@
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
-				dataList:[{"count":122}],
-				taskList:[{"id":"0","name":"全部"}],
-				taskId:"0",
-				series:[],
+				dataList:[],
+				taskList:[],
+				taskId:"",
+				jobId:getJobId(),
 				arr:[
 					{"name":"成功数量","width":3,"type":"line","color":"#5e72e4","data":[210,150,367,200,400]},
 					{"name":"回复数量","width":3,"type":"line","color":"#a0650b","data":[110,50,267,100,300]},
@@ -94,7 +97,11 @@
 					{"name":"回复率","width":3,"type":"line","color":"#f4f5f7","data":[50,250,567,100,300]},
 				]
             }
-        },
+		},
+		created(){
+			this.getTaskList();
+			this.getStatisticsList();
+		},
         mounted(){
 			document.getElementById('taskMgr').classList.add("is-active");
 			this.myChartLine = echarts.init(document.getElementById('echart_line'));
@@ -106,21 +113,45 @@
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 			},
-			checkInfo(){
-
-			},
-			changeServeNum(){
-
-			},
 			changeTask(){
-
+				this.jobId = this.taskId;
+				setJobId(this.taskId);
+				this.getStatisticsList();
             },
 			returnPage(){
 				this.$router.push({ name: "TaskMgr" }); 
 			},
-            async getUsers(){
-                const Users = await getUserList({offset: this.offset, limit: this.limit});
+            async getStatisticsList(){
+              	var req = {
+					"token":getToken(),
+					"job_id":this.jobId
+				}
+				const data = await task.getMess(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					const obj = this.taskList.find( value =>value.job_id == this.taskId);
+					var list = data.data.list || [];
+					for ( var i=0; i<list.length;i++ ){
+						var reply_per = 0;
+						if ( list[i].succ_send_sum >0 ){
+							reply_per = Math.round(list[i].reply_num/list[i].succ_send_sum*100);
+						}
+						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
+						this.$set(list[i],"reply_per",reply_per+"%");
+						this.$set(list[i],"name",obj.job_name);
+					}
+					this.dataList = list;
+				}
 			},
+			async getTaskList(){
+				var req = {
+					"token":getToken()
+				}
+				const data = await task.getTaskList(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					this.taskList = data.data.list || [];
+					this.taskId = this.jobId;
+				}
+            },	
 			lineChart(show, dataX, dataY, type){                                                      
 				this.lineDataStyle(dataY);
 				if ( type ==1 ){

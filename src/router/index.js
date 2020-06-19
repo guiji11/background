@@ -6,11 +6,11 @@ Vue.use(Router)
 const login = () => import('@/page/login/index');
 const layout = () => import('@/page/layout/index');
 const home = () => import('@/page/home/index');
-const taskMgr = () => import('@/page/taskMgr/index');
-const dataSource = () => import('@/page/taskMgr/dataSource/index');
-const dataStatistics = () => import('@/page/taskMgr/dataStatistics/index');
-const dataMess = () => import('@/page/taskMgr/dataMess/index');
-const messageMgr = () => import('@/page/messageMgr/index');
+const taskMgr = () => import('@/page/task/index');
+const dataSource = () => import('@/page/task/dataSource/index');
+const dataStatistics = () => import('@/page/task/dataStatistics/index');
+const dataMess = () => import('@/page/task/dataMess/index');
+const messageMgr = () => import('@/page/message/index');
 
 const routes = [
 	{
@@ -28,12 +28,12 @@ const routes = [
 			component: home,
 			meta: ['数据总览'],
 		},{
-			path: '/taskMgr',
+			path: '/task',
 			name: 'TaskMgr',
 			component: taskMgr,
 			meta: ['任务管理'],
 		},{
-			path: '/messageMgr',
+			path: '/message',
 			name: 'MessageMgr',
 			component: messageMgr,
 			meta: ['聊天管理'],
@@ -48,7 +48,7 @@ const routes = [
 			component: dataStatistics,
 			meta: ['任务管理-数据统计'],
 		},{
-			path: '/dataMess',
+			path: '/dataMessage',
 			name: 'DataMess',
 			component: dataMess,
 			meta: ['任务管理-消息管理'],

@@ -9,9 +9,9 @@
 				<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
 					<el-option
 						v-for="item in taskList"
-						:key="item.id"
-						:label="item.name"
-						:value="item.id" >
+						:key="item.job_id"
+						:label="item.job_name"
+						:value="item.job_id" >
 					</el-option>
 				</el-select>
 			</div>
@@ -25,35 +25,42 @@
 					:data="dataList"
 					tooltip-effect="dark">
 					<el-table-column
-						prop="count"
+						prop="time"
 					    label="时间">
 					</el-table-column>
 					<el-table-column
-						prop="count"
 					    label="小组ID">
+						<template scope="scope">
+							<el-tooltip effect="dark" :content="scope.row.fb_group_id" placement="top">
+								<span>{{scope.row.fb_group_id}}</span>
+							</el-tooltip>
+						</template>
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="member_num"
 					    label="用户总数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
-					    label="已使用">
+						prop="send_num"
+					    label="下发数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
-					    label="回复率">
+						prop="reply_num"
+					    label="回复数">
 					</el-table-column>
 					<el-table-column
 						prop="count"
 					    label="状态">
+						<template scope="scope">
+							<span>{{scope.row.status==1?'开始':'停止'}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
-						width="150px"
+						width="120px"
 					    label="操作">
 						 <template scope="scope">
-							<button class="check-info" @click="checkInfo(scope.row)">编辑</button>
-							<button class="check-info margin" @click="checkInfo(scope.row)">开始</button>
+							<button class="check-info" @click="checkInfo(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
+							<svg-icon iconClass="delete" class="margin delete"/>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -69,11 +76,15 @@
 				</el-pagination>
 			</div>
 		</div>
+		<create-source :job_id="jobId" :dialogVisible="showSourceDialog" @changeStatus="closeDialog"></create-source>
     </div>
 </template>
 
 <script>
-	import echarts from 'echarts';
+	import CreateSource from '@/components/CreateSource';
+	import task from '@/api/task-mgr';
+	import { getToken, getJobId, setJobId } from '@/utils/auth';
+	import moment from 'moment';
     export default {
 		name:"DataMess",
         data(){
@@ -82,12 +93,21 @@
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
-				dataList:[{"count":122}],
-				taskList:[{"id":"0","name":"全部"}],
-				taskId:"0",
+				dataList:[],
+				taskList:[],
+				taskId:"",
+				showSourceDialog:false,
+				jobId:getJobId(),
             }
-        },
+		},
+		components: {
+			CreateSource,
+		},
+		created(){
+			this.getTaskList();
+		},
         mounted(){
+			this.getSourceList();
 			document.getElementById('taskMgr').classList.add("is-active");
         },
         methods: {
@@ -98,14 +118,46 @@
 
 			},
 			showDialog(){
-
+				this.showSourceDialog = true;
+			},
+			closeDialog(data){
+				this.showSourceDialog = false;
+				if ( data ){
+					this.getSourceList();
+				}
 			},
 			changeTask(){
-
+				this.jobId = this.taskId;
+				setJobId(this.taskId);
+				this.getSourceList();
             },
 			returnPage(){
 				this.$router.push({ name: "TaskMgr" }); 
-			},		
+			},
+			async getSourceList(){
+				var req = {
+					"token":getToken(),
+					"job_id":this.jobId
+				}
+				const data = await task.getSource(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					var list = data.data.list || [];
+					for ( var i=0; i<list.length;i++ ){
+						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
+					}
+					this.dataList = list;
+				}
+			},
+			async getTaskList(){
+				var req = {
+					"token":getToken()
+				}
+				const data = await task.getTaskList(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					this.taskList = data.data.list || [];
+					this.taskId = this.jobId;
+				}
+            }			
         },
     }
 </script>
@@ -189,8 +241,15 @@
 			color: #828f9c;
 			cursor:pointer;
 		}
+		.delete{
+			position: absolute;
+			margin-top: 1px;
+			width: 23px;
+			height: 23px;
+			cursor: pointer;
+		}
 		.margin{
-			margin-left: 10px;
+			margin-left: 12px;
 		}
 	}
 	.table-pagination /deep/{

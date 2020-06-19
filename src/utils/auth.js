@@ -4,6 +4,7 @@ const TokenKey = 'vue_private_cloud';
 const UserKey = 'user_private_cloud';
 const UserId = 'id_private_cloud';
 const UserType= 'type_private_cloud';
+const Userjobid= 'jobid_private_cloud';
 
 export function getToken() {
   return Cookies.get(TokenKey)
@@ -43,5 +44,13 @@ export function getUserId() {
 
 export function getUserType() {
   return Cookies.get(UserType)
+}
+
+export function setJobId(name) {
+  return Cookies.set(Userjobid, name,{expires:8})
+}
+
+export function getJobId() {
+  return Cookies.get(Userjobid)
 }
 

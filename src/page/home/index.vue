@@ -98,7 +98,7 @@
 </template>
 
 <script>
-
+	import { getToken, getUserType} from '@/utils/auth'
     export default {
         data(){
             return {
@@ -107,13 +107,16 @@
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
+				accType:getUserType(),
 				dataList:[{"count":122}],
 				serveNum:"0",
 				serveList:[{"id":"0","name":"全部"}],
             }
         },
         created(){
-    
+			if ( this.accType !=1 ){
+				this.$router.push({ name: "TaskMgr" }); 
+			}
         },
         methods: {
 			handleCurrentChange(val){                           

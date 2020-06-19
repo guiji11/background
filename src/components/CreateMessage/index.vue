@@ -1,6 +1,6 @@
 <template>
 	<el-dialog
-	title="创建任务"
+	title="创建消息"
 	:visible.sync="currentIndex"
 	@close ="callback(false)"
 	destroy-on-close
@@ -10,8 +10,12 @@
 	center>
 		<div class="list">
 			<div class="item">
-				<font>任务名 : </font>
-				<el-input v-model="taskName" type="text"/>
+				<font>消息内容 : </font>
+				<el-input v-model="msg" resize="none" type="textarea"/>
+			</div>
+			<div class="item">
+				<font>消息数 : </font>
+				<el-input v-model="count" type="text"/>
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
@@ -26,11 +30,16 @@ import task from '@/api/task-mgr';
 export default {
 	data:function(){
 		return{
-			taskName:"",
+			msg:"",
+			count:"",
 			currentIndex:this.dialogVisible,
 		}
 	},
 	props:{
+		job_id: {
+		  type: String,
+		  required: true
+		},
 		dialogVisible: {
 		  type: Boolean,
 		  required: true
@@ -45,9 +54,11 @@ export default {
 		async complete(){
 			var req = {
 				"token":getToken(),
-				"job_name":this.taskName
+				"job_id":this.job_id,
+				"msg":this.msg,
+				"quota":Number(this.count || 0)
 			}
-			const data = await task.createTask(JSON.stringify(req));
+			const data = await task.setMess(JSON.stringify(req));
 			if ( data.rtn == 0 ){
 				this.callback(true);
 			}else {
@@ -71,17 +82,22 @@ export default {
 	.list-border {                        
 		/deep/ .el-dialog {
 			width: 540px;
-			height: 360px;
+			height: 380px;
 		}	
 		/deep/ .el-input__inner{
-			margin-left: 55px;
+			margin-left: 65px;
 			height: 38px;
 			padding-left: 10px;
 			line-height: 38px;
 			color: #48465b;
 		}	
 		/deep/ .el-input{
-			width: 225px;
+			width: 280px;
+		}
+		/deep/ .el-textarea__inner {
+			margin-left: 65px;
+			font-size: 12px;
+			height: 80px;
 		}
 		/deep/ .el-dialog--center .el-dialog__footer .el-button--primary,
 		/deep/ .el-dialog--center .el-dialog__footer{
@@ -91,15 +107,15 @@ export default {
     }
     .list{
 		position: relative;
-		margin-left: 130px;
-		margin-top: 60px;
+		margin-left: 65px;
+		margin-top: 40px;
 		width: 410px;
-		height: 160px;
+		height: 200px;
     	.item{
     		position:relative;
     		margin-top: 18px;
 		    width: 280px;
-			height: 38px;
+			height: 80px;
 			font{
 				position:absolute;
 				margin-left: 0px;

@@ -9,9 +9,9 @@
 				:default-active="defaultActive"
 				text-color="#768492"
 				active-text-color="#3092fc" theme="dark" router>
-				<el-menu-item index="home"><svg-icon iconClass="data-screening" /><span class="menu-name">数据总览</span></el-menu-item>
-				<el-menu-item index="taskMgr" id="taskMgr"><svg-icon iconClass="task-mgr" /><span class="menu-name">任务管理</span></el-menu-item>
-				<el-menu-item index="messageMgr"><svg-icon iconClass="mess-mgr" /><span class="menu-name">聊天管理</span></el-menu-item>
+				<el-menu-item index="home" v-if="accType==1"><svg-icon iconClass="data-screening" /><span class="menu-name">数据总览</span></el-menu-item>
+				<el-menu-item index="task" id="taskMgr"><svg-icon iconClass="task-mgr" /><span class="menu-name">任务管理</span></el-menu-item>
+				<el-menu-item index="message"><svg-icon iconClass="mess-mgr" /><span class="menu-name">聊天管理</span></el-menu-item>
 			</el-menu>
 		</el-aside>
 		<el-main class="right-main">
@@ -25,18 +25,24 @@
 </template>
 
 <script>
-	import { removeToken, getUser} from '@/utils/auth'
+	import { getToken, removeToken, getUser, getUserType} from '@/utils/auth'
 	import { MessageBox } from 'element-ui'
     export default {
 		data(){
             return {
-                name:'admin',
+				name:getUser() || 'admin',
+				accType:getUserType(),
             }
         },
 		computed: {
 			defaultActive: function(){
 				return this.$route.path.replace('/', '');
 			},
+		},
+		mounted(){
+			if ( !getToken() ){
+				this.$router.push({ name: 'Login' });
+			}
 		},
 		methods:{
 			logout(){
@@ -67,9 +73,6 @@
 			min-height: 100%;
 			border-right:solid 1px #f0f0f0;
 			background-color:#f7f7f7;
-		}
-		.el-aside{
-			width:190px !important;
 		}
 		.el-menu-item:hover,
 		.is-active{
