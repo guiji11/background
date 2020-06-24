@@ -59,8 +59,8 @@
 						width="120px"
 					    label="操作">
 						 <template scope="scope">
-							<button class="check-info" @click="checkInfo(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
-							<svg-icon iconClass="delete" class="margin delete"/>
+							<button class="check-info" @click="manageSource(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
+							<svg-icon iconClass="delete" class="margin delete" @click="manageSource(scope.row,-1)"/>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -85,6 +85,7 @@
 	import task from '@/api/task-mgr';
 	import { getToken, getJobId, setJobId } from '@/utils/auth';
 	import moment from 'moment';
+	import { MessageBox } from 'element-ui';
     export default {
 		name:"DataMess",
         data(){
@@ -109,13 +110,13 @@
         mounted(){
 			this.getSourceList();
 			document.getElementById('taskMgr').classList.add("is-active");
-        },
+		},
+		destroyed(){
+			document.getElementById('taskMgr').classList.remove("is-active");
+		},
         methods: {
 			handleCurrentChange(val){                           
 				this.currentPage = val;
-			},
-			checkInfo(){
-
 			},
 			showDialog(){
 				this.showSourceDialog = true;
@@ -133,6 +134,46 @@
             },
 			returnPage(){
 				this.$router.push({ name: "TaskMgr" }); 
+			},
+			manageSource(obj,status){
+				if ( !status ){
+					status = 1;
+					if ( obj.status ==1 ){
+						status = 0;
+					}
+					this.sendMessData(obj,status);
+				}else{
+					MessageBox.confirm('是否删除该数据源？', '', {
+					confirmButtonText: '删除',
+					showCancelButton:false,
+					type: 'warning'
+					}).then(() => {
+						this.sendSourceData(obj,status);
+					});
+				}
+			},
+			async sendSourceData(obj,status){
+				var req = {
+					"token":getToken(),
+					"job_id":this.jobId,
+					"msg_id":obj.group_id,
+					"status":status
+				}
+				const data = await task.manageSource(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					if ( status !=-1 ){
+						this.$set(obj,"status",status);
+					}else{
+						this.dataList.splice(this.dataList.findIndex(item => item.group_id === obj.group_id), 1);
+					}
+				}else{
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
+				}
 			},
 			async getSourceList(){
 				var req = {

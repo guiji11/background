@@ -62,9 +62,9 @@
 						width="180px"
 					    label="操作">
 						 <template scope="scope">
-							<button class="check-info" @click="checkInfo(scope.row)">编辑</button>
-							<button class="check-info margin" @click="checkInfo(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
-							<svg-icon iconClass="delete" class="margin delete"/>
+							<button class="check-info" @click="editMess(scope.row)">编辑</button>
+							<button class="check-info margin" @click="manageMess(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
+							<svg-icon iconClass="delete" class="margin delete" @click="manageMess(scope.row,-1)"/>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -80,7 +80,7 @@
 				</el-pagination>
 			</div>
 		</div>
-		<create-message :job_id="jobId" :dialogVisible="showMessDialog" @changeStatus="closeDialog"></create-message>
+		<create-message :job_id="jobId" :title = "title" :info="info" :dialogVisible="showMessDialog" @changeStatus="closeDialog"></create-message>
     </div>
 </template>
 
@@ -89,6 +89,7 @@
 	import task from '@/api/task-mgr';
 	import { getToken, getJobId, setJobId } from '@/utils/auth';
 	import moment from 'moment';
+	import { MessageBox } from 'element-ui'
     export default {
 		name:"DataMess",
         data(){
@@ -102,6 +103,8 @@
 				showMessDialog:false,
 				jobId:getJobId(),
 				taskId:"",
+				info:{},
+				title:"",
             }
 		},
 		components: {
@@ -113,16 +116,23 @@
         mounted(){
 			document.getElementById('taskMgr').classList.add("is-active");
 			this.getMessList();
-        },
+		},
+		destroyed(){
+			document.getElementById('taskMgr').classList.remove("is-active");
+		},
         methods: {
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 			},
-			checkInfo(){
-
+			editMess(data){
+				this.info = data;
+				this.showMessDialog = true;
+				this.title ="编辑消息";
 			},
 			showDialog(){
 				this.showMessDialog = true;
+				this.title ="创建消息";
+				this.info = {};
 			},
 			closeDialog(data){
 				this.showMessDialog = false;
@@ -137,6 +147,46 @@
             },
 			returnPage(){
 				this.$router.push({ name: "TaskMgr" }); 
+			},
+			manageMess(obj,status){
+				if ( !status ){
+					status = 1;
+					if ( obj.status ==1 ){
+						status = 0;
+					}
+					this.sendMessData(obj,status);
+				}else{
+					MessageBox.confirm('是否删除该消息？', '', {
+					confirmButtonText: '删除',
+					showCancelButton:false,
+					type: 'warning'
+					}).then(() => {
+						this.sendMessData(obj,status);
+					});
+				}
+			},
+			async sendMessData(obj,status){
+				var req = {
+					"token":getToken(),
+					"job_id":this.jobId,
+					"msg_id":obj.msg_id,
+					"status":status
+				}
+				const data = await task.manageMess(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					if ( status !=-1 ){
+						this.$set(obj,"status",status);
+					}else{
+						this.dataList.splice(this.dataList.findIndex(item => item.msg_id === obj.msg_id), 1);
+					}
+				}else{
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
+				}
 			},
 			async getMessList(){
 				var req = {

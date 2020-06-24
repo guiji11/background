@@ -1,6 +1,6 @@
 <template>
 	<el-dialog
-	title="创建消息"
+	:title="title"
 	:visible.sync="currentIndex"
 	@close ="callback(false)"
 	destroy-on-close
@@ -36,6 +36,14 @@ export default {
 		}
 	},
 	props:{
+		info: {
+		  type: Object,
+		  required: true
+		},
+		title: {
+		  type: String,
+		  required: true
+		},
 		job_id: {
 		  type: String,
 		  required: true
@@ -49,6 +57,10 @@ export default {
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
 		},
+		info:function(data){//监听属性变化
+			this.count = this.info.quota || '';
+			this.msg = this.info.msg || '';
+		},
 	},
 	methods: {
 		async complete(){
@@ -56,7 +68,8 @@ export default {
 				"token":getToken(),
 				"job_id":this.job_id,
 				"msg":this.msg,
-				"quota":Number(this.count || 0)
+				"quota":Number(this.count || 0),
+				"msg_id": this.info.msg_id || "",
 			}
 			const data = await task.setMess(JSON.stringify(req));
 			if ( data.rtn == 0 ){

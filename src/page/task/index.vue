@@ -92,7 +92,7 @@
 				return this.$route.path.replace('/', '');
 			},
 		},
-		mounted(){
+		activated(){
 			this.getTaskList();
 		},
         methods: {
@@ -136,6 +136,13 @@
 						this.$set(list[i],"reply_num_per",reply_num_per+"%");
 					}
 					this.dataList = list;
+				}else{
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
 				}
             }
         },

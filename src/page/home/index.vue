@@ -5,36 +5,23 @@
 			<div class="card-border margin-right">
 				<div class="card-content">
 					<svg-icon iconClass="acc-count" class="card-icon"/>
-					<div class="card-value">1000000</div>
+					<div class="card-value">{{total_online}}</div>
 				</div>
-				<div class="card-name">账号总数</div>
+				<div class="card-name">在线账号数</div>
 			</div>
 			<div class="card-border margin-right" style="flex-grow: 1;">
 				<div class="card-content">
 					<svg-icon iconClass="acc-block" class="card-icon"/>
-					<div class="card-value">1000000</div>
+					<div class="card-value">{{total_suspend}}</div>
 				</div>
 				<div class="card-name">封号总数</div>
 			</div>
 			<div class="card-border">
 				<div class="card-content">
 					<svg-icon iconClass="acc-mess" class="card-icon"/>
-					<div class="card-value">1000000</div>
+					<div class="card-value">{{total_msg}}</div>
 				</div>
-				<div class="card-name">今日发消息数</div>
-			</div>
-		</div>
-		<div class="table-title">
-			<div class="table-item">
-				<font class="title">服务器编号</font>
-				<el-select v-model="serveNum" placeholder="全部" @change="changeServeNum" class="select-border"  >
-					<el-option
-						v-for="item in serveList"
-						:key="item.id"
-						:label="item.name"
-						:value="item.id" >
-					</el-option>
-				</el-select>
+				<div class="card-name">发消息数</div>
 			</div>
 		</div>
 		<div class="list">
@@ -48,31 +35,31 @@
 					<el-table-column
 					    label="服务器编号">
 					    <template scope="scope">
-							<span style="font-weight:600;">S{{scope.row.count}}</span>
+							<span style="font-weight:600;">{{scope.row.hostname}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="online"
 					    label="在线数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="today_suspend_num"
 					    label="今日封号数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="today_send_num"
 					    label="今日发消息数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="today_reply_num"
 					    label="今日回复数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="send_num"
 					    label="累计发消息数">
 					</el-table-column>
 					<el-table-column
-						prop="count"
+						prop="reply_num"
 					    label="累计回复数">
 					</el-table-column>
 					<el-table-column
@@ -94,42 +81,64 @@
 				</el-pagination>
 			</div>
 		</div>
+		<server-info :dialogVisible="showMessDialog" :hostname="hostname" @changeStatus="closeDialog"></server-info>
     </div>
 </template>
 
 <script>
+	import home from '@/api/home';
 	import { getToken, getUserType} from '@/utils/auth'
+	import ServerInfo from '@/components/ServerInfo';
     export default {
         data(){
             return {
 				listLoading:false,
-				multipleSelection:[],
+				hostname:"",
+				showMessDialog:false,
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
 				accType:getUserType(),
-				dataList:[{"count":122}],
-				serveNum:"0",
-				serveList:[{"id":"0","name":"全部"}],
+				dataList:[],
+				total_online:0,
+				total_suspend:0,
+				total_msg:0,
             }
-        },
-        created(){
+		},
+		components: {
+			ServerInfo,
+		},
+        mounted(){
 			if ( this.accType !=1 ){
 				this.$router.push({ name: "TaskMgr" }); 
 			}
-        },
+		},
+		activated(){
+			this.getServerList();
+		},
         methods: {
 			handleCurrentChange(val){                           
 				this.currentPage = val;
+				this.getServerList();
 			},
-			checkInfo(){
-
+			checkInfo(data){
+				this.hostname = data.hostname;
+				this.showMessDialog = true;
 			},
-			changeServeNum(){
-
+			closeDialog(){
+				this.showMessDialog = false;
 			},
-            async getUsers(){
-                const Users = await getUserList({offset: this.offset, limit: this.limit});
+            async getServerList(){
+				var req = {
+					"token":getToken()
+				}
+				const data = await home.getServerList(JSON.stringify(req));
+				if ( data.rtn == 0 ){
+					this.dataList = data.data.list || [];
+					this.total_online = data.data.total_online;
+					this.total_suspend = data.data.total_suspend;
+					this.total_msg = data.data.total_send_num;
+				}
             }
         },
     }
@@ -198,35 +207,11 @@
 		margin-right: 30px;
 	}
 }
-.table-title{
-	position: relative;
-    left: 0px;
-    right: 320px;
-    height: 34px;
-	.table-item{
-		margin-right: 21px;
-		float:left;
-		.title{
-			margin-right: 9px;
-			font-weight: 500;
-			font-size: 12px;
-			font-stretch: normal;
-			letter-spacing: 0.36px;
-			color: #595d6e;
-		}
-		.select-border{
-			width: 136px;
-			height: 34px;
-			background-color: #ffffff;
-			border-radius: 4px;
-		}
-	}
-}
 .list{
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:250px;
+	top:205px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{

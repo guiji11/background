@@ -9,6 +9,9 @@ const func = {
   getMess:get_mess,
   setSource:set_source,
   getSource:get_source,
+  getStatis:get_statis,
+  manageMess:manage_mess,
+  manageSource:manage_source,
 }
 
 function create_task(data) {                                                    //创建任务
@@ -43,6 +46,14 @@ function get_mess(data) {                                                       
   })
 }
 
+function manage_mess(data) {                                                     //管理消息
+  return request({
+    url: url + "fbapi/manage_msg",
+    method: 'post',
+    data
+  })
+}
+
 function set_source(data) {                                                      //创建数据源
   return request({
     url: url + "fbapi/add_group",
@@ -51,9 +62,25 @@ function set_source(data) {                                                     
   })
 }
 
-function get_source(data) {                                                        //查询数据源
+function get_source(data) {                                                      //查询数据源
   return request({
     url: url + "fbapi/get_job_groups",
+    method: 'post',
+    data
+  })
+}
+
+function manage_source(data) {                                                    //管理数据源
+  return request({
+    url: url + "fbapi/manage_group",
+    method: 'post',
+    data
+  })
+}
+
+function get_statis(data) {                                                       //查询数据统计
+  return request({
+    url: url + "fbapi/get_job_stat",
     method: 'post',
     data
   })

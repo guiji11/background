@@ -8,26 +8,32 @@
         </div>
 		<div class="right-content">
             <div class="left-content friend-border">
-                <div v-for="item in accList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'']" @click="getMessageList(item)">
-                    <svg-icon iconClass="user" class="acc-icon"/>
-                    <div class="acc-name">{{item.to.nickname}}</div>
-                    <div class="msg-name">{{item.msg}}</div>
-                    <span v-if="item.unread >0" class="unread"></span>
+                <div v-for="item in accList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
+                    <img :src="baseUrl+item.to.avt" class="acc-icon"/>
+                    <div class="acc-name">{{item.to.nickname?item.to.nickname:'--'}}</div>
+                    <div class="msg-name">{{item.latest_msg}}</div>
+                    <span v-if="item.unread_flag&&item.id!=cur_session.id" class="unread"></span>
+                    <svg-icon v-if="item.from.home_page" iconClass="acc-index" class="acc-index" @click.prevent.stop="openIndex(item.from.home_page)"/>
                 </div>
             </div>
 			<div class="chat-list" id="chat_list">
+                <div class="all-mess" @click="getMessageList(cur_session,true)">查看更多消息</div>
                 <div v-for="item in chatList" :key="item.mid" :class="!item.send?'chat-border':'chat-border-right'">
-                    <div :class="item.send?'icon-right':'icon'">
-                        <svg-icon :iconClass="!item.send?'head':'head-right'" class="chat-icon"/>
+                    <div v-if="item.send" class="icon-right">
+                        <svg-icon iconClass="user" :class="['chat-icon',cur_session.from.online==1?'':'gray']"/>
+                    </div>
+                    <div v-else class="icon">
+                        <img :src="baseUrl+cur_session.to.avt" :class="['chat-icon',cur_session.from.online==1?'':'gray']"/>
                     </div>
                     <div class="chat-content">
-                        <div class="chat-body">{{item.body}}</div>
-                        <div class="footer-time">11:22</div>
+                        <div class="chat-body">{{item.text}}</div>
+                        <div v-if="item.time" class="footer-time">{{item.time}}</div>
                     </div>
+                    <img v-if="item.sending" :src="loading" class="loading-icon"/>
                 </div>
             </div>
             <div class="send-message">
-                <input v-model="mess_value" class="content-input" placeholder="在此输入！" @enter="sendMessage()"/>
+                <input v-model="mess_value" class="content-input" placeholder="在此输入！" @keyup.enter="sendMessage()"/>
                 <div class="msg-btn" @click="sendMessage()">发送</div>
             </div>
 		</div>
@@ -37,24 +43,37 @@
 <script>
     import task from '@/api/task-mgr';
     import { getToken, getUserId } from '@/utils/auth';
+    import moment from 'moment';
+    import { mapGetters } from 'vuex';
     export default {
         data(){
             return {
+                loading:require('../../../public/mess-loading.gif'),
                 mess_value:'',
-                open:0,
                 taskList:[],
-                accList:[{"id":3,"msg":"gggg","from":{"nickname":"灌灌灌灌"},"to":{"nickname":"灌灌灌灌"}}],
-                chatList:[{"mid":3,"body":"灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌","send":false},{"mid":2,"body":"灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌灌","send":true}],
+                accList:[],
+                chatList:[],
                 cur_task:{},
                 cur_session:{},
                 socket:'',
+                send_mess_obj:'',
+                last_mid:'',
+                last_ts:-1,
+                all_mess:false,
             }
         },
+        computed: {
+            ...mapGetters([
+                'baseUrl',
+            ]),
+        },
         mounted(){
-            //this.connectWesocket();
+            this.connectWesocket();
         },
         activated(){
             this.getTaskList();
+            var div = document.getElementById('chat_list');
+            div.scrollTop = div.scrollHeight;
         },
         methods: {
             async getTaskList(){
@@ -68,34 +87,130 @@
             },	
             getSessionList(obj){
                 this.cur_task = obj;
+                this.accList = [];
+                this.chatList = [];
+                this.cur_session = {};
                 var req = {
                     "type":"get_chat_list",
                     "job_id":this.cur_task.job_id,
                 }
-                this.socket.send(this.str2ab(JSON.stringify(req)));
+                this.socket.onsend(JSON.stringify(req));
             },
-            getMessageList(obj){
+            getMessageList(obj,type){
                 this.cur_session = obj;
-                var req = {
-                    "type":"get_dialog",
-                }
-                this.socket.send(this.str2ab(JSON.stringify(req)));
-            },
-            sendMessage(){
-                if ( this.mess_value =="" || !this.cur_session.fid ){
+                this.all_mess = type;
+                if ( !this.cur_session.from ){
                     return;
                 }
-                var req = {
-                    "type":"send_msg",
-                    "fid":this.cur_session.fid,
-                    "ofid":this.cur_session.otherFid,
-                    "msg":this.mess_value,
+                if ( !type ){
+                    this.chatList = [];
+                    this.last_ts = -1;
+                    this.last_mid = "";
                 }
-                this.socket.send(this.str2ab(JSON.stringify(req)));
+                this.$set(obj,"unread_flag",false);
+                var req = {
+                    "type":"get_dialog",
+                    "fid":this.cur_session.from.fid,
+                    "ofid":this.cur_session.to.fid,
+                    "size":15,
+                    "last_ts":this.last_ts,
+                    "last_mid":this.last_mid
+                }
+                this.socket.onsend(JSON.stringify(req));
+            },
+            openIndex(url){
+                window.open(url);
+            },
+            sendMessage(){
+                if ( this.mess_value =="" || !this.cur_session.from ){
+                    return;
+                }
+                this.send_mess_obj = {
+                    "type":"send_msg",
+                    "job_id":this.cur_task.job_id,
+                    "fid":this.cur_session.from.fid,
+                    "ofid":this.cur_session.to.fid,
+                    "text":this.mess_value,
+                }
+                this.socket.onsend(JSON.stringify(this.send_mess_obj));
                 this.mess_value = "";
             },
+            showData(data){
+                if ( data.type == "get_chat_list" ){
+                    var list = data.data.list || [];
+                    list.sort(function(a,b){
+                        return b.unread_flag - a.unread_flag;
+                    });
+                    for ( var i=0; i<list.length;i++ ){
+                        list[i].id = list[i].from.fid+"_"+list[i].to.fid;
+                    }
+                    this.accList = list;
+                }else if ( data.type == "get_dialog" ){
+                    var list = data.data.list || [];
+                    for ( var i=0; i<list.length;i++ ){
+                        this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD HH:mm'));
+                    }
+                    if ( this.all_mess ){
+                        this.chatList = list.concat(this.chatList);
+                        this.all_mess = false;
+                        document.getElementById('chat_list').scrollTop = 0;
+                    }else{
+                        this.chatList = list;
+                        this.$nextTick(function(){
+                            var div = document.getElementById('chat_list');
+                            div.scrollTop = div.scrollHeight;
+                        });
+                    }
+                    if ( list.length >0 ){
+                        this.last_mid = list[0].mid || '';
+                        this.last_ts = list[0].ts || -1;
+                    }
+                }else if ( data.type == "send_msg" ){
+                    var req = {
+                        "mid":data.data.imid,
+                        "send":true,
+                        "text":this.send_mess_obj.text,
+                        "sending":true
+                    }
+                    this.chatList.push(req);
+                    this.$nextTick(function(){
+                        var div = document.getElementById('chat_list');
+                        div.scrollTop = div.scrollHeight;
+                    });
+                }else if ( data.type == "update_unread" ){
+                    var obj =  {
+                        "from": {"fid": data.fid,"online":1,"home_page":data.home_page},
+                        "to": {"fid": data.ofid, "avt": data.o_avt, "nickname": data.o_nickname},
+                        "latest_msg":data.latest,  
+                        "unread_flag": true, 
+                        "ts": data.ts,
+                    }
+                    obj.id = data.fid+"_"+data.ofid;
+                    for ( var i=0; i<this.accList.length;i++ ){
+                        if ( this.accList[i].id == obj.id ){
+                            this.accList.splice(i,1);
+                            break;
+                        }
+                    }
+                    this.accList.unshift(obj);
+                }else if ( Object.keys(this.cur_session).length == 0 ){
+                }else if ( Object.keys(this.cur_session).length >0 && this.cur_session.from.fid != data.fid && this.cur_session.to.fid != data.ofid ){
+                    console.log("不是当前fid");
+                }else if ( data.type == "send_msg_succ" ){
+                    const obj = this.chatList.find( value =>value.mid == data.imid);
+                    if ( obj.mid ){
+                        this.$set(obj,"sending",false);
+                    }
+                }else if ( data.type == "update_dialog" ){
+                    this.chatList.push(data);
+                    this.$nextTick(function(){
+                        var div = document.getElementById('chat_list');
+                        div.scrollTop = div.scrollHeight;
+                    });
+                }
+            },
             connectWesocket(){
-                this.socket = new WebSocket(this.$store.getters.baseUrl+"messager");
+                this.socket = new WebSocket(this.$store.getters.messageUrl+"messager");
                 this.socket.onopen = () => {
                     var req = {
                         "type":"handshake",
@@ -106,15 +221,13 @@
                 this.socket.onerror = () => {
                     console.log("连接错误");
                 },
+                this.socket.onsend = (param) => {
+                    console.log("send="+param);                   
+                    this.socket.send(this.str2ab(param));
+                },
                 this.socket.onmessage = (data) => {
-                    if ( data.type == "get_chat_list" ){
-                        this.accList = data.list || [];
-                    }else if ( data.type == "get_dialog" ){
-                        this.chatList = data.list || [];
-                    }else if ( data.type == "send_msg" ){
-                        var div = document.getElementById('chat_list');
-                        div.scrollTop = div.scrollHeight;
-                    }
+                    console.log(data.data);
+                    this.showData(JSON.parse(data.data));
                 },
                 this.socket.onclose = () => {
                     console.log("socket已经关闭");
@@ -147,6 +260,15 @@
         left: 19px;
         right:19px;
         max-width: 1300px;
+    }
+    .gray{
+        -webkit-filter: grayscale(100%);
+        -moz-filter: grayscale(100%);
+        -ms-filter: grayscale(100%);
+        -o-filter: grayscale(100%);
+        filter: grayscale(100%);
+        filter: gray;
+        filter: progid:DXImageTransform.Microsoft.BasicImage(grayscale=1);
     }
     .left-content{
         position: absolute;
@@ -187,12 +309,13 @@
                 margin-top: 10px;
                 width:40px;
                 height:40px;
+                border-radius: 27px;
             }
             .acc-name{
                 position: absolute;
                 left: 45px;
                 right: 20px;
-                color: #768492;
+                color: #3092fc;
                 margin-left: 15px;
                 text-overflow: ellipsis;
                 overflow: hidden;
@@ -202,7 +325,7 @@
                 position: absolute;
                 margin-top: 24px;
                 left: 45px;
-                right: 20px;
+                right: 40px;
                 color: #768492;
                 margin-left: 15px;
                 text-overflow: ellipsis;
@@ -212,11 +335,19 @@
             .unread{
                 position: absolute;
                 right: 10px;
-                top: 23px;
+                top: 15px;
                 height: 8px;
                 width: 8px;
                 border-radius: 25px;
-                background-color: #7a9e9f;
+                background-color: #3092fc;
+            }
+            .acc-index{
+                position: absolute;
+                right: 10px;
+                bottom: 10px;
+                height: 20px;
+                width: 20px;
+                cursor: pointer;
             }
         }
         .task-border:hover,
@@ -240,6 +371,13 @@
         background-color: #ffffff;
         border-radius: 6px;
         box-shadow: 0 6px 10px -4px rgba(0,0,0,.15);
+        .all-mess{
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #3092fc;
+            cursor: pointer;
+        }
         .chat-list{
             position: absolute;
             top: 5px;
@@ -251,7 +389,8 @@
             border-bottom: 1px solid #f1eae0;
             .chat-border{
                 position: relative;
-                margin-top: 15px;
+                margin-top: 19px;
+                margin-bottom: 10px;
                 display: flex;
                 justify-content: flex-start;
                 align-items: flex-start;
@@ -262,6 +401,7 @@
                     .chat-icon{
                         width: 40px;
                         height:40px;
+                        border-radius: 27px;
                     }
                 }
                 .chat-content{
@@ -294,10 +434,11 @@
             }
             .chat-border-right{
                 position: relative;
-                margin-top: 15px;
+                margin-top: 19px;
+                margin-bottom: 10px;
                 display: flex;
                 justify-content: flex-end;
-                align-items: flex-end;
+                align-items: center;
                 .icon-right{
                     position: relative;
                     width: 40px;
@@ -306,6 +447,7 @@
                     .chat-icon{
                         width: 40px;
                         height:40px;
+                        border-radius: 27px;
                     }
                 }
                 .icon-right:after{
@@ -332,6 +474,9 @@
                     background-color: #d6c1ab;
                     color: #252422;
                 }
+                .loading-icon{
+                    margin-right: 10px;
+                }
                 .chat-body{
                     word-wrap: break-word;
                     word-break: normal;
@@ -349,9 +494,10 @@
             }
             .footer-time{
                 margin-right: 0px;
-                margin-top: 5px;
+                margin-top: 7px;
                 padding: 0;
                 float: right;
+                color: rgba(0, 0, 0, 0.5);
             }
         }
         .send-message{

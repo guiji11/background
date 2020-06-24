@@ -32,7 +32,7 @@
 						</template>
 					</el-table-column>
 					<el-table-column
-						prop="time"
+						prop="date"
 					    label="时间">
 					</el-table-column>
 					<el-table-column
@@ -40,11 +40,11 @@
 					    label="发送总量">
 					</el-table-column>
 					<el-table-column
-						prop="send_num"
+						prop="succ_send_sum"
 					    label="成功数量">
 					</el-table-column>
 					<el-table-column
-						prop="send_num"
+						prop="succ_send_per"
 					    label="成功率">
 					</el-table-column>
 					<el-table-column
@@ -54,6 +54,10 @@
 					<el-table-column
 						prop="reply_per"
 					    label="回复率">
+					</el-table-column>
+					<el-table-column
+						prop="remain_quota"
+					    label="剩余可用">
 					</el-table-column>
 				</el-table>
 			</div>
@@ -74,7 +78,6 @@
 <script>
 	import task from '@/api/task-mgr';
 	import { getToken, getJobId, setJobId } from '@/utils/auth';
-	import moment from 'moment';
 	import echarts from 'echarts';
     export default {
 		name:"DataStatistics",
@@ -90,12 +93,13 @@
 				taskList:[],
 				taskId:"",
 				jobId:getJobId(),
-				arr:[
-					{"name":"成功数量","width":3,"type":"line","color":"#5e72e4","data":[210,150,367,200,400]},
-					{"name":"回复数量","width":3,"type":"line","color":"#a0650b","data":[110,50,267,100,300]},
-					{"name":"成功率","width":3,"type":"line","color":"#0ca563","data":[310,200,267,400,300]},
-					{"name":"回复率","width":3,"type":"line","color":"#f4f5f7","data":[50,250,567,100,300]},
-				]
+				taskTime:[],
+				succ_send_sum:[],
+				reply_num:[],
+				succ_send_per:[],
+				reply_per:[],
+				send_num:[],
+				remain_quota:[],
             }
 		},
 		created(){
@@ -106,9 +110,22 @@
 			document.getElementById('taskMgr').classList.add("is-active");
 			this.myChartLine = echarts.init(document.getElementById('echart_line'));
 			this.myChartBar = echarts.init(document.getElementById('echart_bar'));
-			this.lineChart(this.myChartLine ,[56,67,89,78,90],this.arr,1);
-			this.lineChart(this.myChartBar ,[56,67,89,78,90],[{"name":"发送总量","type":"bar","color":"#fb6340","data":[210,150,367,200,400]}],2);
-        },
+			var lineArr=[
+				{"name":"成功数量","width":3,"type":"line","color":"#5e72e4","data":this.succ_send_sum},
+				{"name":"回复数量","width":3,"type":"line","color":"#a0650b","data":this.reply_num},
+				{"name":"成功率","width":3,"type":"line","color":"#0ca563","data":this.succ_send_per},
+				{"name":"回复率","width":3,"type":"line","color":"#f4f5f7","data":this.reply_per},
+			];
+			var barArr=[
+				{"name":"发送总量","type":"bar","color":"#fb6340","data":this.send_num},
+				{"name":"剩余可用","type":"bar","color":"#5e72e4","data":this.remain_quota}
+			];
+			this.lineChart(this.myChartLine, this.taskTime, lineArr, 1);
+			this.lineChart(this.myChartBar, this.taskTime, barArr, 2);
+		},
+		destroyed(){
+			document.getElementById('taskMgr').classList.remove("is-active");
+		},
         methods: {
 			handleCurrentChange(val){                           
 				this.currentPage = val;
@@ -126,18 +143,30 @@
 					"token":getToken(),
 					"job_id":this.jobId
 				}
-				const data = await task.getMess(JSON.stringify(req));
+				const data = await task.getStatis(JSON.stringify(req));
 				if ( data.rtn ==0 ){
+					this.taskTime = [];
+					this.succ_send_sum = [];
+					this.reply_num = [];
+					this.succ_send_per = [];
+					this.reply_per = [];
+					this.send_num = [];
+					this.remain_quota = [];
 					const obj = this.taskList.find( value =>value.job_id == this.taskId);
 					var list = data.data.list || [];
 					for ( var i=0; i<list.length;i++ ){
 						var reply_per = 0;
+						var succ_send_per = 0;
+						if ( list[i].send_num >0 ){
+							succ_send_per = Math.round(list[i].succ_send_num/list[i].send_num*100);
+						}
 						if ( list[i].succ_send_sum >0 ){
 							reply_per = Math.round(list[i].reply_num/list[i].succ_send_sum*100);
 						}
-						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
 						this.$set(list[i],"reply_per",reply_per+"%");
+						this.$set(list[i],"succ_send_per",succ_send_per+"%");
 						this.$set(list[i],"name",obj.job_name);
+						setEchartData(list[i]);
 					}
 					this.dataList = list;
 				}
@@ -151,8 +180,17 @@
 					this.taskList = data.data.list || [];
 					this.taskId = this.jobId;
 				}
-            },	
-			lineChart(show, dataX, dataY, type){                                                      
+			},
+			setEchartData(obj){
+				this.taskTime.push(obj.date);
+				this.succ_send_sum.push(obj.succ_send_sum);
+				this.reply_num.push(obj.reply_num);
+				this.succ_send_per.push(obj.succ_send_per);
+				this.reply_per.push(obj.reply_per);
+				this.send_num.push(obj.send_num);
+				this.remain_quota.push(obj.remain_quota);
+			},	
+			lineChart(show, dataX, dataY, type){                                                    
 				this.lineDataStyle(dataY);
 				if ( type ==1 ){
 					var legend = {
@@ -164,7 +202,7 @@
 					}
 				}else if ( type ==2 ){
 					var legend = {
-						data:['发送总量']
+						data:['发送总量','剩余可用']
 					}
 				}
 				show.setOption({

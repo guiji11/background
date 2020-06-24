@@ -53,7 +53,7 @@
 		        }).then(() => {
 		        	removeToken();
 		        	this.$router.push({ name: 'Login' });
-		        })
+		        });
 			}
 		}
     }
