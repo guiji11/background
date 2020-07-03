@@ -47,7 +47,7 @@
 					    label="今日封号数">
 					</el-table-column>
 					<el-table-column
-						prop="today_send_num"
+						prop="today_succ_send_num"
 					    label="今日发消息数">
 					</el-table-column>
 					<el-table-column
@@ -55,7 +55,7 @@
 					    label="今日回复数">
 					</el-table-column>
 					<el-table-column
-						prop="send_num"
+						prop="succ_send_num"
 					    label="累计发消息数">
 					</el-table-column>
 					<el-table-column
@@ -137,7 +137,14 @@
 					this.dataList = data.data.list || [];
 					this.total_online = data.data.total_online;
 					this.total_suspend = data.data.total_suspend;
-					this.total_msg = data.data.total_send_num;
+					this.total_msg = data.data.total_succ_send_num;
+				}else if ( this.accType ==1 ){
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
 				}
             }
         },

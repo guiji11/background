@@ -41,25 +41,29 @@
 					    label="用户总数">
 					</el-table-column>
 					<el-table-column
-						prop="send_num"
-					    label="下发数">
+						prop="succ_send_num"
+					    label="已发送量">
 					</el-table-column>
 					<el-table-column
 						prop="reply_num"
 					    label="回复数">
 					</el-table-column>
 					<el-table-column
+						prop="remain"
+					    label="剩余可用成员数">
+					</el-table-column>
+					<el-table-column
 						prop="count"
 					    label="状态">
 						<template scope="scope">
-							<span>{{scope.row.status==1?'开始':'停止'}}</span>
+							<span :style="scope.row.status==1?'color:#3092fc':'color:#ff8f5e'">{{scope.row.status==1?'进行中':'暂停'}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column
 						width="120px"
 					    label="操作">
 						 <template scope="scope">
-							<button class="check-info" @click="manageSource(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
+							<button class="check-info" :style="scope.row.status==1?'color:#ff8f5e':'color:#3092fc'" @click="manageSource(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
 							<svg-icon iconClass="delete" class="margin delete" @click="manageSource(scope.row,-1)"/>
 						</template>
 					</el-table-column>
@@ -83,7 +87,7 @@
 <script>
 	import CreateSource from '@/components/CreateSource';
 	import task from '@/api/task-mgr';
-	import { getToken, getJobId, setJobId } from '@/utils/auth';
+	import { getToken, getJobId, setJobId, getUserType, getUserId } from '@/utils/auth';
 	import moment from 'moment';
 	import { MessageBox } from 'element-ui';
     export default {
@@ -99,6 +103,8 @@
 				taskId:"",
 				showSourceDialog:false,
 				jobId:getJobId(),
+				accType:getUserType(),
+				userid:"",
             }
 		},
 		components: {
@@ -141,7 +147,7 @@
 					if ( obj.status ==1 ){
 						status = 0;
 					}
-					this.sendMessData(obj,status);
+					this.sendSourceData(obj,status);
 				}else{
 					MessageBox.confirm('是否删除该数据源？', '', {
 					confirmButtonText: '删除',
@@ -156,7 +162,7 @@
 				var req = {
 					"token":getToken(),
 					"job_id":this.jobId,
-					"msg_id":obj.group_id,
+					"group_id":obj.group_id,
 					"status":status
 				}
 				const data = await task.manageSource(JSON.stringify(req));
@@ -183,6 +189,9 @@
 				const data = await task.getSource(JSON.stringify(req));
 				if ( data.rtn ==0 ){
 					var list = data.data.list || [];
+					list.sort(function(a,b){
+                        return b.status - a.status;
+                    });
 					for ( var i=0; i<list.length;i++ ){
 						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
 					}
@@ -190,8 +199,12 @@
 				}
 			},
 			async getTaskList(){
+				if ( this.accType !=1 ){
+					this.userid = getUserId();
+				}
 				var req = {
-					"token":getToken()
+					"token":getToken(),
+					"userid":this.userid
 				}
 				const data = await task.getTaskList(JSON.stringify(req));
 				if ( data.rtn ==0 ){

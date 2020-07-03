@@ -15,14 +15,14 @@
 					element-loading-text="Loading"
 					:data="dataList"
 					tooltip-effect="dark"
-					height="449px"
+					height="451px"
 					class="table-dark">
 					<el-table-column
 					    prop="date"
 					    label="时间">
 					</el-table-column>
 					<el-table-column
-					    prop="send_num"
+					    prop="succ_send_num"
 					    label="发消息数">
 					</el-table-column>
 					<el-table-column

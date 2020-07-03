@@ -40,24 +40,24 @@
 					    label="发送总量">
 					</el-table-column>
 					<el-table-column
-						prop="succ_send_sum"
+						prop="succ_send_num"
 					    label="成功数量">
 					</el-table-column>
 					<el-table-column
-						prop="succ_send_per"
 					    label="成功率">
+						<template scope="scope">
+							<span >{{scope.row.succ_send_per}}%</span>
+						</template>
 					</el-table-column>
 					<el-table-column
 						prop="reply_num"
 					    label="回复数量">
 					</el-table-column>
 					<el-table-column
-						prop="reply_per"
 					    label="回复率">
-					</el-table-column>
-					<el-table-column
-						prop="remain_quota"
-					    label="剩余可用">
+						<template scope="scope">
+							<span >{{scope.row.reply_per}}%</span>
+						</template>
 					</el-table-column>
 				</el-table>
 			</div>
@@ -77,7 +77,7 @@
 
 <script>
 	import task from '@/api/task-mgr';
-	import { getToken, getJobId, setJobId } from '@/utils/auth';
+	import { getToken, getJobId, setJobId, getUserType, getUserId } from '@/utils/auth';
 	import echarts from 'echarts';
     export default {
 		name:"DataStatistics",
@@ -100,28 +100,15 @@
 				reply_per:[],
 				send_num:[],
 				remain_quota:[],
+				accType:getUserType(),
+				userid:"",
             }
 		},
 		created(){
 			this.getTaskList();
-			this.getStatisticsList();
 		},
         mounted(){
 			document.getElementById('taskMgr').classList.add("is-active");
-			this.myChartLine = echarts.init(document.getElementById('echart_line'));
-			this.myChartBar = echarts.init(document.getElementById('echart_bar'));
-			var lineArr=[
-				{"name":"成功数量","width":3,"type":"line","color":"#5e72e4","data":this.succ_send_sum},
-				{"name":"回复数量","width":3,"type":"line","color":"#a0650b","data":this.reply_num},
-				{"name":"成功率","width":3,"type":"line","color":"#0ca563","data":this.succ_send_per},
-				{"name":"回复率","width":3,"type":"line","color":"#f4f5f7","data":this.reply_per},
-			];
-			var barArr=[
-				{"name":"发送总量","type":"bar","color":"#fb6340","data":this.send_num},
-				{"name":"剩余可用","type":"bar","color":"#5e72e4","data":this.remain_quota}
-			];
-			this.lineChart(this.myChartLine, this.taskTime, lineArr, 1);
-			this.lineChart(this.myChartBar, this.taskTime, barArr, 2);
 		},
 		destroyed(){
 			document.getElementById('taskMgr').classList.remove("is-active");
@@ -152,44 +139,65 @@
 					this.reply_per = [];
 					this.send_num = [];
 					this.remain_quota = [];
-					const obj = this.taskList.find( value =>value.job_id == this.taskId);
+					const obj = this.taskList.find( value =>value.job_id == this.jobId);
 					var list = data.data.list || [];
 					for ( var i=0; i<list.length;i++ ){
 						var reply_per = 0;
 						var succ_send_per = 0;
 						if ( list[i].send_num >0 ){
-							succ_send_per = Math.round(list[i].succ_send_num/list[i].send_num*100);
+							succ_send_per = Math.round(list[i].succ_send_num/list[i].send_num*1000)/10;
 						}
-						if ( list[i].succ_send_sum >0 ){
-							reply_per = Math.round(list[i].reply_num/list[i].succ_send_sum*100);
+						if ( list[i].succ_send_num >0 ){
+							reply_per = Math.round(list[i].reply_num/list[i].succ_send_num*1000)/10;
 						}
-						this.$set(list[i],"reply_per",reply_per+"%");
-						this.$set(list[i],"succ_send_per",succ_send_per+"%");
+						this.$set(list[i],"reply_per",reply_per);
+						this.$set(list[i],"succ_send_per",succ_send_per);
 						this.$set(list[i],"name",obj.job_name);
-						setEchartData(list[i]);
+						this.setEchartData(list[i]);
 					}
 					this.dataList = list;
+					this.initChart();
 				}
 			},
 			async getTaskList(){
+				if ( this.accType !=1 ){
+					this.userid = getUserId();
+				}
 				var req = {
-					"token":getToken()
+					"token":getToken(),
+					"userid":this.userid
 				}
 				const data = await task.getTaskList(JSON.stringify(req));
 				if ( data.rtn ==0 ){
 					this.taskList = data.data.list || [];
 					this.taskId = this.jobId;
 				}
+				this.getStatisticsList();
 			},
 			setEchartData(obj){
-				this.taskTime.push(obj.date);
-				this.succ_send_sum.push(obj.succ_send_sum);
-				this.reply_num.push(obj.reply_num);
-				this.succ_send_per.push(obj.succ_send_per);
-				this.reply_per.push(obj.reply_per);
-				this.send_num.push(obj.send_num);
-				this.remain_quota.push(obj.remain_quota);
+				this.taskTime.unshift(obj.date);
+				this.succ_send_sum.unshift(obj.succ_send_num);
+				this.reply_num.unshift(obj.reply_num);
+				this.succ_send_per.unshift(obj.succ_send_per);
+				this.reply_per.unshift(obj.reply_per);
+				this.send_num.unshift(obj.send_num);
+				this.remain_quota.unshift(obj.remain_quota);
 			},	
+			initChart(){
+				this.myChartLine = echarts.init(document.getElementById('echart_line'));
+				this.myChartBar = echarts.init(document.getElementById('echart_bar'));
+				var lineArr=[
+					{"name":"成功率","width":3,"type":"line","color":"#0ca563","data":this.succ_send_per},
+					{"name":"回复率","width":3,"type":"line","color":"#f4f5f7","data":this.reply_per},
+				];
+				var barArr=[
+					{"name":"发送总量","type":"bar","color":"#fb6340","data":this.send_num},
+					{"name":"成功数量","type":"bar","color":"#5e72e4","data":this.succ_send_sum},
+					{"name":"回复数量","type":"bar","color":"#a0650b","data":this.reply_num},
+				];
+				this.lineChart(this.myChartLine, this.taskTime, lineArr, 1);
+				this.lineChart(this.myChartBar, this.taskTime, barArr, 2);
+			},
 			lineChart(show, dataX, dataY, type){                                                    
 				this.lineDataStyle(dataY);
 				if ( type ==1 ){
@@ -198,11 +206,11 @@
 							fontSize: 12,
 							color: '#ffffff'
 						},
-						data:['成功数量','回复数量','成功率','回复率']
+						data:['成功率','回复率']
 					}
 				}else if ( type ==2 ){
 					var legend = {
-						data:['发送总量','剩余可用']
+						data:['发送总量','成功数量','回复数量']
 					}
 				}
 				show.setOption({

@@ -2,18 +2,29 @@
     <div class="mess">
         <h2 class="title">聊天管理</h2>
 		<div class="left-content" style="width:240px;">
-            <div v-for="item in taskList" :key="item.job_id" :class="['task-border',item.job_id==cur_task.job_id?'sel':'']" @click="getSessionList(item)">
+            <div v-for="item in taskList" :key="item.job_id" :class="['task-border',item.job_id==cur_task?'sel':'']" @click="getSessionList(item)">
                 <div class="task-name">{{item.job_name}}</div>
             </div>
         </div>
 		<div class="right-content">
             <div class="left-content friend-border">
-                <div v-for="item in accList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
-                    <img :src="baseUrl+item.to.avt" class="acc-icon"/>
+                <div v-for="item in showAccList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
+                    <img :src="baseUrl+item.to.avt" class="acc-icon" :fid="item.from.fid" :ofid="item.to.fid"/>
                     <div class="acc-name">{{item.to.nickname?item.to.nickname:'--'}}</div>
                     <div class="msg-name">{{item.latest_msg}}</div>
-                    <span v-if="item.unread_flag&&item.id!=cur_session.id" class="unread"></span>
-                    <svg-icon v-if="item.from.home_page" iconClass="acc-index" class="acc-index" @click.prevent.stop="openIndex(item.from.home_page)"/>
+                    <span v-if="item.unread_flag" class="unread"></span>
+                    <svg-icon v-if="item.to.home_page" iconClass="acc-index" class="acc-index" @click.prevent.stop="openIndex(item.to.home_page)"/>
+                </div>
+                <div class="table-pagination" v-show="this.cur_task">
+                    <el-pagination
+                        @current-change="handleCurrentChange"
+                        :current-page.sync="currentPage"
+                        :page-size="pageSize"
+                        :hide-on-single-page ="true"
+                        background
+                        layout="prev, pager, next"
+                        :page-count="pageTotal">
+                    </el-pagination>
                 </div>
             </div>
 			<div class="chat-list" id="chat_list">
@@ -33,7 +44,7 @@
                 </div>
             </div>
             <div class="send-message">
-                <input v-model="mess_value" class="content-input" placeholder="在此输入！" @keyup.enter="sendMessage()"/>
+                <textarea v-model="mess_value" class="content-input" type="textarea" @keyup.enter="sendMessage"></textarea>
                 <div class="msg-btn" @click="sendMessage()">发送</div>
             </div>
 		</div>
@@ -53,13 +64,18 @@
                 taskList:[],
                 accList:[],
                 chatList:[],
-                cur_task:{},
+                showAccList:[],
+                cur_task:"",
                 cur_session:{},
                 socket:'',
+                socket_close:false,
                 send_mess_obj:'',
                 last_mid:'',
                 last_ts:-1,
                 all_mess:false,
+                currentPage:1,
+				pageSize:200,
+				pageTotal:1,
             }
         },
         computed: {
@@ -74,11 +90,28 @@
             this.getTaskList();
             var div = document.getElementById('chat_list');
             div.scrollTop = div.scrollHeight;
+            if ( this.socket_close ){
+                this.connectWesocket();
+            }
         },
         methods: {
+            handleCurrentChange(val){                           
+                this.currentPage = val;
+                this.showPageData();
+            },
+            showPageData(){
+		    	this.pageTotal = Math.ceil( this.accList.length/this.pageSize );		
+				var start_index = ( this.currentPage-1 )*this.pageSize;
+				var end_index = this.currentPage*this.pageSize;
+				if ( this.currentPage*this.pageSize > this.accList.length ){
+					end_index = this.accList.length;
+                }
+                this.showAccList = this.accList.slice(start_index,end_index);	
+            },
             async getTaskList(){
 				var req = {
-					"token":getToken()
+                    "token":getToken(),
+                    "userid":getUserId(),
 				}
 				const data = await task.getTaskList(JSON.stringify(req));
 				if ( data.rtn ==0 ){
@@ -86,17 +119,21 @@
 				}
             },	
             getSessionList(obj){
-                this.cur_task = obj;
+                this.cur_task = obj.job_id;
                 this.accList = [];
+                this.showAccList = [];
                 this.chatList = [];
                 this.cur_session = {};
                 var req = {
                     "type":"get_chat_list",
-                    "job_id":this.cur_task.job_id,
+                    "job_id":this.cur_task,
                 }
                 this.socket.onsend(JSON.stringify(req));
             },
             getMessageList(obj,type){
+                if ( this.cur_session.id == obj.id && !type){
+                    return;
+                }
                 this.cur_session = obj;
                 this.all_mess = type;
                 if ( !this.cur_session.from ){
@@ -121,93 +158,168 @@
             openIndex(url){
                 window.open(url);
             },
-            sendMessage(){
-                if ( this.mess_value =="" || !this.cur_session.from ){
+            sendMessage(event){
+               if ( this.mess_value =="" || !this.cur_session.from ){
                     return;
                 }
-                this.send_mess_obj = {
-                    "type":"send_msg",
-                    "job_id":this.cur_task.job_id,
-                    "fid":this.cur_session.from.fid,
-                    "ofid":this.cur_session.to.fid,
-                    "text":this.mess_value,
+                if ( !event || (event.shiftKey && event.key === "Enter")) {
+                    this.send_mess_obj = {
+                        "type":"send_msg",
+                        "job_id":this.cur_task,
+                        "fid":this.cur_session.from.fid,
+                        "ofid":this.cur_session.to.fid,
+                        "text":this.encodeUtf8(this.myTrim(this.mess_value))
+                    }
+                    this.socket.onsend(JSON.stringify(this.send_mess_obj));
+                    this.send_mess_obj.text = this.myTrim(this.mess_value);
+                    this.mess_value = "";
                 }
-                this.socket.onsend(JSON.stringify(this.send_mess_obj));
-                this.mess_value = "";
             },
-            showData(data){
-                if ( data.type == "get_chat_list" ){
-                    var list = data.data.list || [];
-                    list.sort(function(a,b){
-                        return b.unread_flag - a.unread_flag;
+            getChatList(data){
+                var list = data.data.list || [];
+                list.sort(function(a,b){
+                    return b.from.online - a.from.online;
+                });
+                list.sort(function(a,b){
+                    return b.unread_flag - a.unread_flag;
+                });
+                for ( var i=0; i<list.length;i++ ){
+                    list[i].id = list[i].from.fid+"_"+list[i].to.fid;
+                }
+                this.accList = list;
+                this.showPageData();
+            },
+            getDialog(data){
+                var list = data.data.list || [];
+                for ( var i=0; i<list.length;i++ ){
+                    this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD HH:mm'));
+                }
+                if ( this.all_mess ){
+                    this.chatList = list.concat(this.chatList);
+                    this.all_mess = false;
+                    document.getElementById('chat_list').scrollTop = 0;
+                }else{
+                    this.chatList = list;
+                    this.$nextTick(function(){
+                        var div = document.getElementById('chat_list');
+                        div.scrollTop = div.scrollHeight;
                     });
-                    for ( var i=0; i<list.length;i++ ){
-                        list[i].id = list[i].from.fid+"_"+list[i].to.fid;
-                    }
-                    this.accList = list;
-                }else if ( data.type == "get_dialog" ){
-                    var list = data.data.list || [];
-                    for ( var i=0; i<list.length;i++ ){
-                        this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD HH:mm'));
-                    }
-                    if ( this.all_mess ){
-                        this.chatList = list.concat(this.chatList);
-                        this.all_mess = false;
-                        document.getElementById('chat_list').scrollTop = 0;
+                }
+                if ( list.length >0 ){
+                    this.last_mid = list[0].mid || '';
+                    this.last_ts = list[0].ts || -1;
+                }
+            },
+            sendMsg(data){
+                if ( data.rtn !=0 ){
+                    this.$message({
+                        message: data.msg,
+                        center: true,
+                        type: 'error',
+                        duration: 3 * 1000
+                    });
+                    return;
+                }
+                var req = {
+                    "mid":data.data.imid,
+                    "send":true,
+                    "text":this.send_mess_obj.text,
+                    "sending":true
+                }
+                this.chatList.push(req);
+                this.$nextTick(function(){
+                    var div = document.getElementById('chat_list');
+                    div.scrollTop = div.scrollHeight;
+                });
+            },
+            updateUnread(data){
+                if ( this.cur_task != data.job_id ){
+                    return;
+                }
+                var id = data.fid+"_"+data.ofid;
+                var unread_flag = true;
+                if ( id == this.cur_session.id || data.send ){
+                    unread_flag = false;
+                }
+                var index = this.accList.findIndex(item => item.id === id);
+                var index2 = this.showAccList.findIndex(item => item.id === id);
+                if ( index >-1 && this.accList[index].unread_flag ){
+                    unread_flag = true;
+                }
+                var obj = {
+                    "id":id,
+                    "from": {"fid": data.fid,"online":1},
+                    "to": {"fid": data.ofid, "avt": data.o_avt, "nickname": data.o_nickname,"home_page":data.home_page},
+                    "latest_msg":data.latest,  
+                    "unread_flag": unread_flag, 
+                    "ts": data.ts,
+                }
+                this.accList.splice(index, 1);
+                this.accList.unshift(obj);
+                this.showAccList.splice(index2, 1);
+                this.showAccList.unshift(obj);
+            },
+            sendMsgSucc(data){
+                var id = data.fid+"_"+data.ofid;
+                if ( this.cur_session && id == this.cur_session.id ){
+                    const obj = this.chatList.find( value =>value.mid == data.imid);
+                    if ( obj && obj.mid ){
+                        this.$set(obj,"sending",false);
                     }else{
-                        this.chatList = list;
+                        var req = {
+                            "mid":data.imid,
+                            "send":true,
+                            "text":data.text,
+                        }
+                        this.chatList.push(req);
                         this.$nextTick(function(){
                             var div = document.getElementById('chat_list');
                             div.scrollTop = div.scrollHeight;
                         });
                     }
-                    if ( list.length >0 ){
-                        this.last_mid = list[0].mid || '';
-                        this.last_ts = list[0].ts || -1;
-                    }
-                }else if ( data.type == "send_msg" ){
-                    var req = {
-                        "mid":data.data.imid,
-                        "send":true,
-                        "text":this.send_mess_obj.text,
-                        "sending":true
-                    }
-                    this.chatList.push(req);
-                    this.$nextTick(function(){
-                        var div = document.getElementById('chat_list');
-                        div.scrollTop = div.scrollHeight;
-                    });
-                }else if ( data.type == "update_unread" ){
-                    var obj =  {
-                        "from": {"fid": data.fid,"online":1,"home_page":data.home_page},
-                        "to": {"fid": data.ofid, "avt": data.o_avt, "nickname": data.o_nickname},
-                        "latest_msg":data.latest,  
-                        "unread_flag": true, 
-                        "ts": data.ts,
-                    }
-                    obj.id = data.fid+"_"+data.ofid;
-                    for ( var i=0; i<this.accList.length;i++ ){
-                        if ( this.accList[i].id == obj.id ){
-                            this.accList.splice(i,1);
-                            break;
-                        }
-                    }
-                    this.accList.unshift(obj);
-                }else if ( Object.keys(this.cur_session).length == 0 ){
-                }else if ( Object.keys(this.cur_session).length >0 && this.cur_session.from.fid != data.fid && this.cur_session.to.fid != data.ofid ){
-                    console.log("不是当前fid");
-                }else if ( data.type == "send_msg_succ" ){
-                    const obj = this.chatList.find( value =>value.mid == data.imid);
-                    if ( obj.mid ){
-                        this.$set(obj,"sending",false);
-                    }
-                }else if ( data.type == "update_dialog" ){
+                }
+            },
+            updateDialog(data){
+                var id = data.fid+"_"+data.ofid;
+                if ( this.cur_session && id == this.cur_session.id ){
                     this.chatList.push(data);
                     this.$nextTick(function(){
                         var div = document.getElementById('chat_list');
                         div.scrollTop = div.scrollHeight;
                     });
                 }
+            },
+            showData(data){
+                var self = this;
+                switch (data.type){
+                    case "get_chat_list":
+                        self.getChatList(data);
+                        break
+                    case "get_dialog":
+                        self.getDialog(data);
+                        break  
+                    case "send_msg":
+                        self.sendMsg(data);
+                        break
+                    case "update_unread":
+                        self.updateUnread(data);
+                        break
+                    case "send_msg_succ":
+                        self.sendMsgSucc(data);
+                        break
+                    case "update_dialog":
+                        self.updateDialog(data);
+                        break
+                }
+                // const actions = new Map([
+                //     ["get_chat_list",self.getChatList(data)],
+                //     ["get_dialog",self.getDialog(data)],
+                //     ["send_msg",self.sendMsg(data)],
+                //     ["update_unread",self.updateUnread(data)],
+                //     ["send_msg_succ",self.sendMsgSucc(data)],
+                //     ["update_dialog",self.updateDialog(data)],
+                // ]);
+                // actions.get(data.type);
             },
             connectWesocket(){
                 this.socket = new WebSocket(this.$store.getters.messageUrl+"messager");
@@ -226,11 +338,18 @@
                     this.socket.send(this.str2ab(param));
                 },
                 this.socket.onmessage = (data) => {
-                    console.log(data.data);
+                    //console.log(data.data);
+                    this.socket_close = false;
                     this.showData(JSON.parse(data.data));
                 },
-                this.socket.onclose = () => {
-                    console.log("socket已经关闭");
+                this.socket.onclose = (e) => {
+                    if ( this.$route.path == "/message" ){
+                        setTimeout(()=>{
+                            this.connectWesocket();
+                            console.log("重连"+e.code+ ' ' + e.reason)
+                        },3000);
+                    }
+                    this.socket_close = true;
                 }
             },
             str2ab(str) {
@@ -240,7 +359,23 @@
                     bufView[i] = str.charCodeAt(i);
                 }
                 return buf;
-			}
+            },
+            encodeUtf8(str) {
+                if ( window.TextEncoder ){
+                    var encoder = new TextEncoder('utf8');
+                    var bytes = encoder.encode(str);
+                    var result = '';
+                    for(var i = 0; i < bytes.length; ++i) {
+                        result += String.fromCharCode(bytes[i]);
+                    }
+                    return result;
+                }else{
+                    return eval('\''+encodeURI(str).replace(/%/gm, '\\x')+'\'');
+                }
+            },
+            myTrim(x) {
+                return x.replace(/^\s+|\s+$/gm,'');
+            }
         },
     }
 </script>
@@ -361,6 +496,7 @@
         border-right: 1px solid #f0f0f0;
         top: 0px;
         box-shadow:none;
+        width: 300px;
     }
     .right-content{
         position: absolute;
@@ -382,14 +518,14 @@
             position: absolute;
             top: 5px;
             bottom: 80px;
-            left: 295px;
+            left: 325px;
             right: 15px;
             overflow-y: auto;
             overflow-x: hidden;
             border-bottom: 1px solid #f1eae0;
             .chat-border{
                 position: relative;
-                margin-top: 19px;
+                margin-top: 23px;
                 margin-bottom: 10px;
                 display: flex;
                 justify-content: flex-start;
@@ -417,6 +553,7 @@
                 .chat-body{
                     word-wrap: break-word;
                     word-break: normal;
+                    white-space: pre-line;
                     overflow-y: auto;  
                     max-height: 400px;
                 }
@@ -434,7 +571,7 @@
             }
             .chat-border-right{
                 position: relative;
-                margin-top: 19px;
+                margin-top: 23px;
                 margin-bottom: 10px;
                 display: flex;
                 justify-content: flex-end;
@@ -479,6 +616,7 @@
                 }
                 .chat-body{
                     word-wrap: break-word;
+                    white-space: pre-line;
                     word-break: normal;
                     overflow-y: auto;  
                     max-height: 400px;
@@ -504,7 +642,7 @@
             position: absolute;
             height:50px;
             bottom: 15px;
-            left: 295px;
+            left: 325px;
             right: 15px;
             .content-input{
                 position: absolute;
@@ -518,6 +656,7 @@
                 color: #768492;
                 border-radius: 5px;
                 background-color: #f3f2ee;
+                resize: none;
             }
             .msg-btn{
                 position: absolute;
@@ -535,4 +674,13 @@
             }
         }
     }
+    .table-pagination /deep/{
+        position: relative;
+        text-align: center;
+        overflow-x: auto;
+        overflow-y: hidden;
+		.el-pagination{
+			padding: 20px 0;
+		}
+	}
 </style>

@@ -1,8 +1,8 @@
 import path from 'path'
 
 const state = {
-  baseUrl:"http://192.168.0.53/",
-  messageUrl:"ws://192.168.0.53:8551/",
+  baseUrl:"http://192.168.3.97/",
+  messageUrl:"ws://192.168.3.97/",  //192.168.3.97
   jobId:'',
 }
 

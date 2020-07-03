@@ -41,7 +41,7 @@
 					    label="目标发送量">
 					</el-table-column>
 					<el-table-column
-						prop="send_num"
+						prop="succ_send_num"
 					    label="已发送量">
 					</el-table-column>
 					<el-table-column
@@ -55,7 +55,7 @@
 					<el-table-column
 					    label="状态">
 						<template scope="scope">
-							<span>{{scope.row.status==1?'开始':'停止'}}</span>
+							<span :style="scope.row.status==1?'color:#3092fc':'color:#ff8f5e'">{{scope.row.status==1?'进行中':'暂停'}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column
@@ -63,7 +63,7 @@
 					    label="操作">
 						 <template scope="scope">
 							<button class="check-info" @click="editMess(scope.row)">编辑</button>
-							<button class="check-info margin" @click="manageMess(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
+							<button class="check-info margin" :style="scope.row.status==1?'color:#ff8f5e':'color:#3092fc'" @click="manageMess(scope.row)">{{scope.row.status==1?'停止':'开始'}}</button>
 							<svg-icon iconClass="delete" class="margin delete" @click="manageMess(scope.row,-1)"/>
 						</template>
 					</el-table-column>
@@ -87,7 +87,7 @@
 <script>
 	import CreateMessage from '@/components/CreateMessage';
 	import task from '@/api/task-mgr';
-	import { getToken, getJobId, setJobId } from '@/utils/auth';
+	import { getToken, getJobId, setJobId, getUserType, getUserId } from '@/utils/auth';
 	import moment from 'moment';
 	import { MessageBox } from 'element-ui'
     export default {
@@ -105,6 +105,8 @@
 				taskId:"",
 				info:{},
 				title:"",
+				accType:getUserType(),
+				userid:"",
             }
 		},
 		components: {
@@ -198,8 +200,8 @@
 					var list = data.data.list || [];
 					for ( var i=0; i<list.length;i++ ){
 						var reply_per = 0;
-						if ( list[i].succ_send_sum >0 ){
-							reply_per = Math.round(list[i].reply_num/list[i].succ_send_sum*100);
+						if ( list[i].succ_send_num >0 ){
+							reply_per = Math.round(list[i].reply_num/list[i].succ_send_num*1000)/10;
 						}
 						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
 						this.$set(list[i],"reply_per",reply_per+"%");
@@ -208,8 +210,12 @@
 				}
 			},
 			async getTaskList(){
+				if ( this.accType !=1 ){
+					this.userid = getUserId();
+				}
 				var req = {
-					"token":getToken()
+					"token":getToken(),
+					"userid":this.userid
 				}
 				const data = await task.getTaskList(JSON.stringify(req));
 				if ( data.rtn ==0 ){

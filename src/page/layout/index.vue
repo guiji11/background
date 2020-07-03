@@ -43,6 +43,13 @@
 			if ( !getToken() ){
 				this.$router.push({ name: 'Login' });
 			}
+			if ( this.$route.path == "/" ){
+				if ( this.accType == 1 ){
+					this.$router.push({ name: 'Home' });
+				}else{
+					this.$router.push({ name: 'TaskMgr' });
+				}
+			}
 		},
 		methods:{
 			logout(){

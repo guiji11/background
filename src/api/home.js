@@ -8,7 +8,7 @@ const func = {
 
 function get_server_list(data) {
   return request({
-    url: store.getters.baseUrl+"fbapi/get_servers",                    //查询数据总览
+    url: store.getters.baseUrl+"fb_api/get_servers",                    //查询数据总览
     method: 'post',
     data,
   })
@@ -16,7 +16,7 @@ function get_server_list(data) {
 
 function get_server_info(data) {
   return request({
-    url: store.getters.baseUrl+"fbapi/get_server_stat",               //查询数据详情
+    url: store.getters.baseUrl+"fb_api/get_server_stat",               //查询数据详情
     method: 'post',
     data,
   })

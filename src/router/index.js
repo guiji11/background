@@ -53,7 +53,7 @@ const routes = [
 			component: dataMess,
 			meta: ['任务管理-消息管理'],
 		}]
-	}
+	},
 ]
 
 export default new Router({

@@ -17,6 +17,24 @@
 						</template>
 					</el-table-column>
 					<el-table-column
+						prop="userName"
+						v-if ="accType==1"
+					    width="180px">
+						<template slot="header" slot-scope="scope">
+							<div class="table-item">
+								<font class="title">用户名</font>
+								<el-select v-model="userid" placeholder="全部" @change="changeUser" class="select-border"  >
+									<el-option
+										v-for="item in allUser"
+										:key="item.userid"
+										:label="item.name"
+										:value="item.userid" >
+									</el-option>
+								</el-select>
+							</div>
+						</template>
+					</el-table-column>
+					<el-table-column
 						prop="time"
 					    label="创建时间">
 					</el-table-column>
@@ -25,7 +43,7 @@
 					    label="已下发消息数">
 					</el-table-column>
 					<el-table-column
-					    label="成功下发数/成功率">
+					    label="成功发送数/成功率">
 						<template scope="scope">
 							<span>{{scope.row.succ_send_num+"/"+scope.row.succ_send_per}}</span>
 						</template>
@@ -41,12 +59,13 @@
 					    label="剩余可用数据">
 					</el-table-column>
 					<el-table-column
-						width="250px"
+						width="350px"
 					    label="任务管理">
 					    <template scope="scope">
 							<button class="check-info" @click="checkInfo(scope.row,'DataStatistics')">数据统计</button>
 							<button class="check-info margin" @click="checkInfo(scope.row,'DataMess')">消息</button>
 							<button class="check-info margin" @click="checkInfo(scope.row,'DataSource')">数据源</button>
+							<button class="check-info margin" @click="showChatDialog(scope.row)">智能回复</button>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -63,29 +82,37 @@
 			</div>
 		</div>
 		<create-task :dialogVisible="showCreateTask" @changeStatus="closeDialog"></create-task>
+		<auto-chat :jobId = "jobId" :dialogVisible="showAutoChat" @changeStatus="closeDialog"></auto-chat>
     </div>
 </template>
 
 <script>
+	import AutoChat from '@/components/AutoChat';
 	import CreateTask from '@/components/CreateTask';
 	import task from '@/api/task-mgr';
-	import { getToken, setJobId } from '@/utils/auth';
+	import { getToken, setJobId, getUserType, getUserId } from '@/utils/auth';
 	import moment from 'moment';
     export default {
 		name:'TaskMgr',
         data(){
             return {
+				accType:getUserType(),
 				listLoading:false,
 				showCreateTask:false,
-				multipleSelection:[],
+				showAutoChat:false,
+				jobId:"",
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
 				dataList:[],
+				allUser:[],
+				userObj:{},
+				userid:"",
             }
 		},
 		components: {
 			CreateTask,
+			AutoChat,
 		},
 		computed: {
 			key: function(){
@@ -93,7 +120,8 @@
 			},
 		},
 		activated(){
-			this.getTaskList();
+			this.getAllUser();
+			document.getElementById('taskMgr').classList.add("is-active");
 		},
         methods: {
 			handleCurrentChange(val){                           
@@ -103,21 +131,44 @@
 				setJobId(obj.job_id);
 				this.$router.push({ name: name}); 
             },
-            changeTask(){
-
+            showChatDialog(obj){
+				this.jobId = obj.job_id;
+				this.showAutoChat = true;
 			},
 			showDialog(){
 				this.showCreateTask = true;
 			},
 			closeDialog(data){
 				this.showCreateTask = false;
+				this.showAutoChat = false;
 				if ( data ){
 					this.getTaskList();
 				}
 			},
-            async getTaskList(){
+			changeUser(){
+				this.getTaskList();
+			},
+			async getAllUser(){
 				var req = {
 					"token":getToken()
+				}
+				const data = await task.getAllUser(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					this.allUser = data.data.list || [];
+					this.allUser.unshift({"userid":"","name":"全部"})
+					for ( var i=0; i<this.allUser.length; i++ ){
+						this.userObj[this.allUser[i].userid] = this.allUser[i].name;
+					}
+				}
+				this.getTaskList();
+			},
+            async getTaskList(){
+				if ( this.accType !=1 ){
+					this.userid = getUserId();
+				}
+				var req = {
+					"token":getToken(),
+					"userid":this.userid
 				}
 				const data = await task.getTaskList(JSON.stringify(req));
 				if ( data.rtn ==0 ){
@@ -126,14 +177,15 @@
 						var succ_send_per = 0;
 						var reply_num_per = 0;
 						if ( list[i].send_num >0 ){
-							succ_send_per = Math.round(list[i].succ_send_num/list[i].send_num*100);
+							succ_send_per = Math.round(list[i].succ_send_num/list[i].send_num*1000)/10;
 						}
 						if ( list[i].succ_send_num >0 ){
-							reply_num_per = Math.round(list[i].reply_num/list[i].succ_send_num*100);
+							reply_num_per = Math.round(list[i].reply_num/list[i].succ_send_num*1000)/10;
 						}
 						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
 						this.$set(list[i],"succ_send_per",succ_send_per+"%");
 						this.$set(list[i],"reply_num_per",reply_num_per+"%");
+						this.$set(list[i],"userName",this.userObj[list[i].userid]);
 					}
 					this.dataList = list;
 				}else{
@@ -167,34 +219,6 @@
 	background-color: #7a9e9f;
 	border-radius: 4px;
 	color: #ffffff;
-}
-.table-title{
-    position: relative;
-    top: 55px;
-    left: 0px;
-    right: 320px;
-    height: 34px;
-	.table-item{
-		margin-right: 21px;
-		float:left;
-		.title{
-			position: relative;
-			margin-left: 19px;
-			padding-top: 15px;
-			margin-right: 9px;
-			font-weight: 500;
-			font-size: 12px;
-			font-stretch: normal;
-			letter-spacing: 0.36px;
-			color: #595d6e;
-		}
-		.select-border{
-			width: 136px;
-			height: 34px;
-			background-color: #ffffff;
-			border-radius: 4px;
-		}
-	}
 }
 .table-list /deep/{
     position: absolute;
@@ -241,7 +265,33 @@
             min-height: 23px;
 			opacity: 0;
 			z-index: 10;
-        }
+		}
+		.table-item{
+			padding-left: 0px;
+			margin-right: 21px;
+			float:left;
+			.title{
+				position: relative;
+				margin-left: 0px;
+				padding-top: 15px;
+				margin-right: 0px;
+				font-weight: 500;
+				font-size: 12px;
+				font-stretch: normal;
+				letter-spacing: 0.36px;
+				color: #595d6e;
+			}
+			.select-border {
+				padding-left: 10px;
+				width: 100px;
+				height: 34px;
+				background-color: #ffffff;
+				border-radius: 4px;
+			}
+		}
+	}
+	/deep/ .el-select>.el-input{
+		padding-left: 0px;
 	}
 	.table-pagination /deep/{
 		position: absolute;

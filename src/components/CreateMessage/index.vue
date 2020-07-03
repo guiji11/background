@@ -56,6 +56,8 @@ export default {
 	watch:{
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
+			this.count = this.info.quota || '';
+			this.msg = this.info.msg || '';
 		},
 		info:function(data){//监听属性变化
 			this.count = this.info.quota || '';
@@ -64,10 +66,27 @@ export default {
 	},
 	methods: {
 		async complete(){
+			if ( !this.msg ){
+				this.$message({
+					message: "请输入消息内容",
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+				return;
+			}else if ( this.info.msg_id && this.count < this.info.quota ){
+				this.$message({
+					message: "编辑下消息数不能小于之前已设定目标消息数 "+this.info.quota,
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				})
+				return;
+			}
 			var req = {
 				"token":getToken(),
 				"job_id":this.job_id,
-				"msg":this.msg,
+				"msg":this.myTrim(this.msg),
 				"quota":Number(this.count || 0),
 				"msg_id": this.info.msg_id || "",
 			}
@@ -82,6 +101,9 @@ export default {
 					duration: 3 * 1000
 				})
 			}
+		},
+		myTrim(x) {
+			return x.replace(/^\s+|\s+$/gm,'');
 		},
 		callback(data){
 			this.$emit('changeStatus',data);	
