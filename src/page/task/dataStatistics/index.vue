@@ -6,6 +6,20 @@
 			<div class="list-chart" id="echart_bar"></div>
 			<div class="list-chart" style="background-color: #172b4d" id="echart_line"></div>
 		</div>
+		<div class="table-title">
+			<div class="table-item">
+				<font class="title">日期选择 ：</font>
+				<el-date-picker
+					v-model="dateArr"
+					@change = changeTime
+					value-format="yyyy-MM-dd"
+					type="daterange"
+					range-separator="至"
+					start-placeholder="开始日期"
+					end-placeholder="结束日期">
+				</el-date-picker>
+			</div>
+		</div>
 		<div class="list">
 			<div class="table-content">
 				<el-table
@@ -79,11 +93,12 @@
 	import task from '@/api/task-mgr';
 	import { getToken, getJobId, setJobId, getUserType, getUserId } from '@/utils/auth';
 	import echarts from 'echarts';
+	import moment from 'moment';
     export default {
 		name:"DataStatistics",
         data(){
             return {
-				listLoading:false,
+				listLoading:true,
 				myChartLine:'',
 				myChartBar:'',
 				currentPage:1,
@@ -102,9 +117,14 @@
 				remain_quota:[],
 				accType:getUserType(),
 				userid:"",
+				dateArr:'',
+				begin:"",
+				end:"",
             }
 		},
 		created(){
+			var start = this.getLocalTime(new Date().getTime()/1000-60*60*24*9);
+			this.dateArr=[moment(start).format('YYYY-MM-DD'),moment(new Date()).format('YYYY-MM-DD')];
 			this.getTaskList();
 		},
         mounted(){
@@ -117,6 +137,14 @@
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 			},
+			getLocalTime(nS) { 
+				return new Date(parseInt(nS) * 1000);  
+			},
+			changeTime(){
+				this.begin = this.dateArr[0];
+				this.end = this.dateArr[1];
+				this.getStatisticsList();
+			},
 			changeTask(){
 				this.jobId = this.taskId;
 				setJobId(this.taskId);
@@ -128,9 +156,12 @@
             async getStatisticsList(){
               	var req = {
 					"token":getToken(),
-					"job_id":this.jobId
+					"job_id":this.jobId,
+					"from":this.begin,
+					"to":this.end
 				}
 				const data = await task.getStatis(JSON.stringify(req));
+				this.listLoading = false;
 				if ( data.rtn ==0 ){
 					this.taskTime = [];
 					this.succ_send_sum = [];
@@ -172,7 +203,7 @@
 					this.taskList = data.data.list || [];
 					this.taskId = this.jobId;
 				}
-				this.getStatisticsList();
+				this.changeTime();
 			},
 			setEchartData(obj){
 				this.taskTime.unshift(obj.date);
@@ -187,8 +218,8 @@
 				this.myChartLine = echarts.init(document.getElementById('echart_line'));
 				this.myChartBar = echarts.init(document.getElementById('echart_bar'));
 				var lineArr=[
-					{"name":"成功率","width":3,"type":"line","color":"#0ca563","data":this.succ_send_per},
-					{"name":"回复率","width":3,"type":"line","color":"#f4f5f7","data":this.reply_per},
+					{"name":"成功率","width":3,"type":"line","color":"#5e72e4","data":this.succ_send_per},
+					{"name":"回复率","width":3,"type":"line","color":"#a0650b","data":this.reply_per},
 				];
 				var barArr=[
 					{"name":"发送总量","type":"bar","color":"#fb6340","data":this.send_num},
@@ -299,11 +330,38 @@
 		box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
 	}
 }
+.table-title{
+    position: relative;
+    left: 0px;
+    right: 320px;
+    height: 34px;
+	.table-item{
+		margin-right: 21px;
+		float:left;
+		.title{
+			position: relative;
+			margin-left: 19px;
+			padding-top: 15px;
+			margin-right: 9px;
+			font-weight: 500;
+			font-size: 12px;
+			font-stretch: normal;
+			letter-spacing: 0.36px;
+			color: #595d6e;
+		}
+		.select-border{
+			width: 136px;
+			height: 34px;
+			background-color: #ffffff;
+			border-radius: 4px;
+		}
+	}
+}
 .list {
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:345px;
+	top:390px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{

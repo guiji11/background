@@ -8,8 +8,8 @@
         </div>
 		<div class="right-content">
             <div class="left-content friend-border">
-                <div v-for="item in showAccList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
-                    <img :src="baseUrl+item.to.avt" class="acc-icon" :fid="item.from.fid" :ofid="item.to.fid"/>
+                <div v-for="item in accList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
+                    <img :src="baseUrl+item.to.avt" class="acc-icon" :fid="item.from.fid" :ofid="item.to.fid" :onerror="errorImg"/>
                     <div class="acc-name">{{item.to.nickname?item.to.nickname:'--'}}</div>
                     <div class="msg-name">{{item.latest_msg}}</div>
                     <span v-if="item.unread_flag" class="unread"></span>
@@ -34,7 +34,7 @@
                         <svg-icon iconClass="user" :class="['chat-icon',cur_session.from.online==1?'':'gray']"/>
                     </div>
                     <div v-else class="icon">
-                        <img :src="baseUrl+cur_session.to.avt" :class="['chat-icon',cur_session.from.online==1?'':'gray']"/>
+                        <img :src="baseUrl+cur_session.to.avt" :class="['chat-icon',cur_session.from.online==1?'':'gray']" :onerror="errorImg"/>
                     </div>
                     <div class="chat-content">
                         <div class="chat-body">{{item.text}}</div>
@@ -60,11 +60,11 @@
         data(){
             return {
                 loading:require('../../../public/mess-loading.gif'),
+                errorImg: 'javascript:this.src="' + require('../../../public/head.svg') + '";this.οnerrοr=null',
                 mess_value:'',
                 taskList:[],
                 accList:[],
                 chatList:[],
-                showAccList:[],
                 cur_task:"",
                 cur_session:{},
                 socket:'',
@@ -74,7 +74,7 @@
                 last_ts:-1,
                 all_mess:false,
                 currentPage:1,
-				pageSize:200,
+				pageSize:100,
 				pageTotal:1,
             }
         },
@@ -84,29 +84,20 @@
             ]),
         },
         mounted(){
-            this.connectWesocket();
+            this.connectWebsocket();
         },
         activated(){
             this.getTaskList();
             var div = document.getElementById('chat_list');
             div.scrollTop = div.scrollHeight;
             if ( this.socket_close ){
-                this.connectWesocket();
+                this.connectWebsocket();
             }
         },
         methods: {
             handleCurrentChange(val){                           
                 this.currentPage = val;
-                this.showPageData();
-            },
-            showPageData(){
-		    	this.pageTotal = Math.ceil( this.accList.length/this.pageSize );		
-				var start_index = ( this.currentPage-1 )*this.pageSize;
-				var end_index = this.currentPage*this.pageSize;
-				if ( this.currentPage*this.pageSize > this.accList.length ){
-					end_index = this.accList.length;
-                }
-                this.showAccList = this.accList.slice(start_index,end_index);	
+                this.sessionListPage();
             },
             async getTaskList(){
 				var req = {
@@ -118,15 +109,28 @@
 					this.taskList = data.data.list || [];
 				}
             },	
-            getSessionList(obj){
-                this.cur_task = obj.job_id;
-                this.accList = [];
-                this.showAccList = [];
+            sessionListPage(){
                 this.chatList = [];
                 this.cur_session = {};
                 var req = {
                     "type":"get_chat_list",
                     "job_id":this.cur_task,
+                    "size":this.pageSize,
+                    "page":this.currentPage
+                }
+                this.socket.onsend(JSON.stringify(req));
+            },
+            getSessionList(obj){
+                this.cur_task = obj.job_id;
+                this.currentPage = 1;
+                this.accList = [];
+                this.chatList = [];
+                this.cur_session = {};
+                var req = {
+                    "type":"get_chat_list",
+                    "job_id":this.cur_task,
+                    "size":this.pageSize,
+                    "page":this.currentPage
                 }
                 this.socket.onsend(JSON.stringify(req));
             },
@@ -187,7 +191,7 @@
                     list[i].id = list[i].from.fid+"_"+list[i].to.fid;
                 }
                 this.accList = list;
-                this.showPageData();
+                this.pageTotal = data.data.total_page || 1;
             },
             getDialog(data){
                 var list = data.data.list || [];
@@ -242,7 +246,6 @@
                     unread_flag = false;
                 }
                 var index = this.accList.findIndex(item => item.id === id);
-                var index2 = this.showAccList.findIndex(item => item.id === id);
                 if ( index >-1 && this.accList[index].unread_flag ){
                     unread_flag = true;
                 }
@@ -256,8 +259,6 @@
                 }
                 this.accList.splice(index, 1);
                 this.accList.unshift(obj);
-                this.showAccList.splice(index2, 1);
-                this.showAccList.unshift(obj);
             },
             sendMsgSucc(data){
                 var id = data.fid+"_"+data.ofid;
@@ -321,7 +322,7 @@
                 // ]);
                 // actions.get(data.type);
             },
-            connectWesocket(){
+            connectWebsocket(){
                 this.socket = new WebSocket(this.$store.getters.messageUrl+"messager");
                 this.socket.onopen = () => {
                     var req = {
@@ -345,7 +346,7 @@
                 this.socket.onclose = (e) => {
                     if ( this.$route.path == "/message" ){
                         setTimeout(()=>{
-                            this.connectWesocket();
+                            this.connectWebsocket();
                             console.log("重连"+e.code+ ' ' + e.reason)
                         },3000);
                     }
@@ -430,6 +431,7 @@
                 text-overflow: ellipsis;
                 overflow: hidden;
                 white-space: nowrap;
+                font-weight: 600;
             }
         }
         .acc-border{

@@ -94,7 +94,7 @@
 		name:"DataMess",
         data(){
             return {
-				listLoading:false,
+				listLoading:true,
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
@@ -187,6 +187,7 @@
 					"job_id":this.jobId
 				}
 				const data = await task.getSource(JSON.stringify(req));
+				this.listLoading = false;
 				if ( data.rtn ==0 ){
 					var list = data.data.list || [];
 					list.sort(function(a,b){

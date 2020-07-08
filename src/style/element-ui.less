@@ -396,3 +396,74 @@
     margin-bottom: 0px !important;
     overflow: hidden;
 }
+
+.el-date-range-picker__header{
+    .el-icon-d-arrow-left:before {
+        position: absolute;
+        margin-top: 0px;
+        margin-left: 0px;
+        width: 13px;
+        height: 13px;
+        content: '';
+        background: url(./images/double-left.svg) no-repeat;
+    }
+    .el-icon-d-arrow-right:before {
+        position: absolute;
+        margin-top: 0px;
+        margin-left: -9px;
+        width: 13px;
+        height: 13px;
+        content: '';
+        background: url(./images/double-right.svg) no-repeat;
+    }
+    .el-icon-arrow-left:before {
+        position: absolute;
+        margin-top: 0px;
+        left: -130px;
+        width: 13px;
+        height: 13px;
+        content: '';
+        background: url(./images/pa-left.svg) no-repeat;
+    }
+    .el-icon-arrow-right:before {
+        position: absolute;
+        margin-top: 0px;
+        left: 105px;
+        width: 13px;
+        height: 13px;
+        content: '';
+        background: url(./images/pa-right.svg) no-repeat;
+    }
+}
+
+.el-date-range-picker__time-header{
+    .el-icon-arrow-right:before {
+        position: absolute;
+        margin-top: 9px;
+        left: -15px;
+        width: 13px;
+        height: 13px;
+        content: '';
+        background: url(./images/pa-right.svg) no-repeat;
+    }
+}
+.el-date-editor--daterange,
+.el-date-editor--datetimerange{
+    .el-range-separator{
+        line-height: 26px;
+    }
+    .el-icon-time:before{
+        display:none;
+    }
+    .el-icon-date:before{
+        display:none;
+    }
+    .el-icon-circle-close{
+        display:none;
+    }
+}
+.el-time-spinner__wrapper{
+    .el-scrollbar__wrap{
+        overflow: auto;
+    }
+}

@@ -22,6 +22,7 @@
 					<div class="card-value">{{total_msg}}</div>
 				</div>
 				<div class="card-name">发消息数</div>
+				<svg-icon iconClass="detail" class="mess-detail" @click="checkMessInfo"/>
 			</div>
 		</div>
 		<div class="list">
@@ -37,6 +38,10 @@
 					    <template scope="scope">
 							<span style="font-weight:600;">{{scope.row.hostname}}</span>
 						</template>
+					</el-table-column>
+					<el-table-column
+						prop="cc_num"
+					    label="机器并发数">
 					</el-table-column>
 					<el-table-column
 						prop="online"
@@ -63,9 +68,11 @@
 					    label="累计回复数">
 					</el-table-column>
 					<el-table-column
-					    label="详情">
+						width="160px"
+					    label="操作">
 					    <template scope="scope">
-							<button class="check-info" @click="checkInfo(scope.row)">查看</button>
+							<button class="check-info" @click="checkInfo(scope.row)">详情</button>
+							<button class="check-info margin" @click="editCc(scope.row)">编辑</button>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -81,7 +88,9 @@
 				</el-pagination>
 			</div>
 		</div>
-		<server-info :dialogVisible="showMessDialog" :hostname="hostname" @changeStatus="closeDialog"></server-info>
+		<server-info :dialogVisible="showServeDialog" :hostname="hostname" @changeStatus="closeDialog"></server-info>
+		<server-cc :dialogVisible="showServeCcDialog" :hostname="hostname" :ccNum="cc_num" @changeStatus="closeDialog"></server-cc>
+		<mess-info :dialogVisible="showMessDialog" @changeStatus="closeDialog"></mess-info>
     </div>
 </template>
 
@@ -89,11 +98,15 @@
 	import home from '@/api/home';
 	import { getToken, getUserType} from '@/utils/auth'
 	import ServerInfo from '@/components/ServerInfo';
+	import MessInfo from '@/components/MessInfo';
+	import ServerCc from '@/components/ServerCc';
     export default {
         data(){
             return {
 				listLoading:false,
 				hostname:"",
+				showServeDialog:false,
+				showServeCcDialog:false,
 				showMessDialog:false,
 				currentPage:1,
 				pageSize:100,
@@ -103,10 +116,14 @@
 				total_online:0,
 				total_suspend:0,
 				total_msg:0,
+				cc_num:0,
+				cur_sel_obj:{},
             }
 		},
 		components: {
 			ServerInfo,
+			MessInfo,
+			ServerCc
 		},
         mounted(){
 			if ( this.accType !=1 ){
@@ -123,10 +140,24 @@
 			},
 			checkInfo(data){
 				this.hostname = data.hostname;
-				this.showMessDialog = true;
+				this.showServeDialog = true;
 			},
-			closeDialog(){
+			editCc(data){
+				this.hostname = data.hostname;
+				this.cc_num = data.cc_num;
+				this.cur_sel_obj = data;
+				this.showServeCcDialog = true;
+			},
+			closeDialog(data){
+				this.showServeDialog = false;
 				this.showMessDialog = false;
+				if ( this.showServeCcDialog && data ){
+					this.$set(this.cur_sel_obj,"cc_num",data);
+				}
+				this.showServeCcDialog = false;
+			},
+			checkMessInfo(){
+				this.showMessDialog = true;
 			},
             async getServerList(){
 				var req = {
@@ -210,6 +241,14 @@
 			width: 90%;
 		}
 	}
+	.mess-detail{
+		position: absolute;
+		right: 4%;
+		width: 25px;
+		height: 22px;
+		bottom: 12px;
+		cursor: pointer;
+	}
 	.margin-right{
 		margin-right: 30px;
 	}
@@ -237,6 +276,9 @@
 			font-size: 12px;
 			color: #828f9c;
 			cursor:pointer;
+		}
+		.margin{
+			margin-left: 10px;
 		}
 	}
 	.table-pagination /deep/{

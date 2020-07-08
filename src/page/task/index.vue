@@ -97,7 +97,7 @@
         data(){
             return {
 				accType:getUserType(),
-				listLoading:false,
+				listLoading:true,
 				showCreateTask:false,
 				showAutoChat:false,
 				jobId:"",
@@ -171,6 +171,7 @@
 					"userid":this.userid
 				}
 				const data = await task.getTaskList(JSON.stringify(req));
+				this.listLoading = false;
 				if ( data.rtn ==0 ){
 					var list = data.data.list || [];
 					for ( var i=0; i<list.length;i++ ){
