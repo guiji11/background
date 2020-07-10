@@ -397,6 +397,7 @@
     overflow: hidden;
 }
 
+.el-date-picker__header,
 .el-date-range-picker__header{
     .el-icon-d-arrow-left:before {
         position: absolute;
@@ -436,6 +437,21 @@
     }
 }
 
+.el-date-picker__header{
+    .el-icon-d-arrow-left:before {
+        margin-left: 0px;
+    }
+    .el-icon-d-arrow-right:before {
+        margin-left: -9px;
+    }
+    .el-icon-arrow-left:before {
+        left: -80px;
+    }
+    .el-icon-arrow-right:before {
+        left: 53px;
+    }  
+}
+
 .el-date-range-picker__time-header{
     .el-icon-arrow-right:before {
         position: absolute;
@@ -447,6 +463,8 @@
         background: url(./images/pa-right.svg) no-repeat;
     }
 }
+.el-date-editor--date,
+.el-date-editor--timerange,
 .el-date-editor--daterange,
 .el-date-editor--datetimerange{
     .el-range-separator{

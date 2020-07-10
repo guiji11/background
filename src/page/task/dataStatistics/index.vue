@@ -318,12 +318,12 @@
     display: flex;
     justify-content:space-between;
     cursor: default;
-	height: 280px;
+	height: 310px;
 	.list-chart{
 		position: relative;
 		padding-top: 10px;
 		width:49%;
-		height: 270px;
+		height: 300px;
 		background-color: #ffffff;
 		border-radius: 6px;
 		overflow: hidden;
@@ -361,7 +361,7 @@
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:390px;
+	top:420px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{

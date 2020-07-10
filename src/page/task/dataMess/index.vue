@@ -5,15 +5,17 @@
 		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">创建消息</el-button>
 		<div class="table-title">
 			<div class="table-item">
-				<font class="title">任务名</font>
-				<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
-					<el-option
-						v-for="item in taskList"
-						:key="item.job_id"
-						:label="item.job_name"
-						:value="item.job_id" >
-					</el-option>
-				</el-select>
+				<font class="title">发送时间 : </font>
+				<el-time-picker
+					is-range
+					v-model="timeArr"
+					@change=setJobRuntime
+					format="HH:mm"
+					range-separator="至"
+					start-placeholder="开始时间"
+					end-placeholder="结束时间"
+					placeholder="选择时间范围">
+				</el-time-picker>
 			</div>
 		</div>
 		<div class="list">
@@ -24,6 +26,23 @@
 					element-loading-text="Loading"
 					:data="dataList"
 					tooltip-effect="dark">
+					<el-table-column
+						prop="name"
+					    width="200px">
+						<template slot="header" slot-scope="scope">
+							<div class="table-item">
+								<font class="title">任务名</font>
+								<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
+									<el-option
+										v-for="item in taskList"
+										:key="item.job_id"
+										:label="item.job_name"
+										:value="item.job_id" >
+									</el-option>
+								</el-select>
+							</div>
+						</template>
+					</el-table-column>
 					<el-table-column
 						prop="time"
 					    label="时间">
@@ -107,6 +126,7 @@
 				title:"",
 				accType:getUserType(),
 				userid:"",
+				timeArr:"",
             }
 		},
 		components: {
@@ -117,7 +137,6 @@
 		},
         mounted(){
 			document.getElementById('taskMgr').classList.add("is-active");
-			this.getMessList();
 		},
 		destroyed(){
 			document.getElementById('taskMgr').classList.remove("is-active");
@@ -125,6 +144,30 @@
         methods: {
 			handleCurrentChange(val){                           
 				this.currentPage = val;
+			},
+			async setJobRuntime(){
+				var req = {
+					"token":getToken(),
+					"job_id":this.jobId,
+					"from":moment(this.timeArr[0]).format('HH:mm'),
+					"to":moment(this.timeArr[1]).format('HH:mm')
+				}
+				const data = await task.setJobRuntime(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					this.$message({
+						message: "success",
+						center: true,
+						type: 'success',
+						duration: 3 * 1000
+					});
+				}else{
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
+				}
 			},
 			editMess(data){
 				this.info = data;
@@ -198,6 +241,7 @@
 				const data = await task.getMess(JSON.stringify(req));
 				if ( data.rtn ==0 ){
 					var list = data.data.list || [];
+					const obj = this.taskList.find( value =>value.job_id == this.jobId);
 					for ( var i=0; i<list.length;i++ ){
 						var reply_per = 0;
 						if ( list[i].succ_send_num >0 ){
@@ -205,8 +249,13 @@
 						}
 						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
 						this.$set(list[i],"reply_per",reply_per+"%");
+						this.$set(list[i],"name",obj.job_name);
 					}
-					this.dataList = list;
+					this.dataList = list;	
+					var begin = moment(new Date()).format('YYYY-MM-DD');
+					var end = new Date(begin+" "+obj.end);		
+					begin = new Date(begin+" "+obj.begin);		
+					this.timeArr=[begin, end];
 				}
 			},
 			async getTaskList(){
@@ -222,6 +271,7 @@
 					this.taskList = data.data.list || [];
 					this.taskId = this.jobId;
 				}
+				this.getMessList();
             }		
         },
     }
@@ -256,8 +306,8 @@
 }
 .table-title{
     position: relative;
-    top: 55px;
-    left: 0px;
+	left: 0px;
+	top: 55px;
     right: 320px;
     height: 34px;
 	.table-item{
@@ -315,6 +365,29 @@
 		}
 		.margin{
 			margin-left: 10px;
+		}
+		.table-item{
+			padding-left: 0px;
+			margin-right: 21px;
+			float:left;
+			.title{
+				position: relative;
+				margin-left: 0px;
+				padding-top: 15px;
+				margin-right: 0px;
+				font-weight: 500;
+				font-size: 12px;
+				font-stretch: normal;
+				letter-spacing: 0.36px;
+				color: #595d6e;
+			}
+			.select-border {
+				padding-left: 10px;
+				width: 116px;
+				height: 34px;
+				background-color: #ffffff;
+				border-radius: 4px;
+			}
 		}
 	}
 	.table-pagination /deep/{

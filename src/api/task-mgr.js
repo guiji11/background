@@ -15,6 +15,7 @@ const func = {
   setAutoDialog:set_auto_dialog,
   getAutoDialog:get_auto_dialog,
   getAllUser:get_all_user,
+  setJobRuntime:set_job_runtime,
 }
 
 function create_task(data) {                                                    //创建任务
@@ -108,6 +109,14 @@ function get_auto_dialog(data) {                                                
 function get_all_user(data) {                                                    //查询所有用户
   return request({
     url: url + "fb_api/get_all_user",
+    method: 'post',
+    data
+  })
+}
+
+function set_job_runtime(data) {                                                 //设置消息下发时间
+  return request({
+    url: url + "fb_api/set_job_runtime",
     method: 'post',
     data
   })

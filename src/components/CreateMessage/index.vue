@@ -132,7 +132,7 @@ export default {
 		/deep/ .el-textarea__inner {
 			margin-left: 65px;
 			font-size: 12px;
-			height: 80px;
+			height: 100px;
 		}
 		/deep/ .el-dialog--center .el-dialog__footer .el-button--primary,
 		/deep/ .el-dialog--center .el-dialog__footer{
@@ -150,7 +150,6 @@ export default {
     		position:relative;
     		margin-top: 18px;
 		    width: 280px;
-			height: 80px;
 			font{
 				position:absolute;
 				margin-left: 0px;
