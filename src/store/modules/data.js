@@ -1,8 +1,8 @@
 import path from 'path'
-
+var host = window.location.host;
 const state = {
-  baseUrl:"http://192.168.3.97/",
-  messageUrl:"ws://192.168.3.97/",  //192.168.3.97
+  baseUrl:"http://"+host+"/",
+  messageUrl:"ws://"+host+"/",  //192.168.3.97
   jobId:'',
 }
 
