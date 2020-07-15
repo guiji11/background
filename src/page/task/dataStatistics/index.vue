@@ -202,6 +202,16 @@
 				if ( data.rtn ==0 ){
 					this.taskList = data.data.list || [];
 					this.taskId = this.jobId;
+				}else{
+					if ( data.msg.indexOf('nvalid token')!=-1 ){
+						data.msg = "身份验证过期，请重新登录！";
+					}
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
 				}
 				this.changeTime();
 			},

@@ -11,7 +11,7 @@ export function getToken() {
 }
 
 export function setToken(token) {
-  return Cookies.set(TokenKey, token,{expires:8})
+  return Cookies.set(TokenKey, token,{expires:10})
 }
 
 export function removeToken() {
@@ -27,15 +27,15 @@ export function getUser() {
 }
 
 export function setUser(name) {
-  return Cookies.set(UserKey, name,{expires:8})
+  return Cookies.set(UserKey, name,{expires:10})
 }
 
 export function setUserId(name) {
-  return Cookies.set(UserId, name,{expires:8})
+  return Cookies.set(UserId, name,{expires:10})
 }
 
 export function setUserType(name) {
-  return Cookies.set(UserType, name,{expires:8})
+  return Cookies.set(UserType, name,{expires:10})
 }
 
 export function getUserId() {
@@ -47,7 +47,7 @@ export function getUserType() {
 }
 
 export function setJobId(name) {
-  return Cookies.set(Userjobid, name,{expires:8})
+  return Cookies.set(Userjobid, name,{expires:10})
 }
 
 export function getJobId() {

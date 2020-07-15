@@ -9,10 +9,24 @@
 	class="list-border"
 	center>
 		<div class="list">
-			<div class="item">
-				<font>小组ID : </font>
-				<el-input v-model="taskName" type="text"/>
+			<el-radio v-model="radio" label="1">输入小组ID</el-radio>
+			<el-radio v-model="radio" label="2">选择邮箱组</el-radio>
+			<div class="item" v-show="radio==1">
+				<font>输入小组ID : </font>
+				<el-input v-model="taskName" type="text" class="select-border"/>
 			</div>
+			<div class="item" v-show="radio==2&&dataList.length>0">
+				<font>选择邮箱组 : </font>
+				<el-select v-model="emailGroupId" class="select-border" >
+					<el-option
+						v-for="item in dataList"
+						:key="item.group_id"
+						:label="item.name"
+						:value="item.group_id" >
+					</el-option>
+				</el-select>
+			</div>
+			<div class="item" v-show="radio==2&&dataList.length==0"><font style="position: relative;">无可用的邮箱组，</font><font @click="mail()" style="position: relative;color:#3092fc;cursor:pointer;">去添加-></font></div>
 		</div>
 		<span slot="footer" class="dialog-footer">
 			<el-button type="primary"  @click.native.prevent="complete()">确 定</el-button>
@@ -23,11 +37,15 @@
 <script>
 import { getToken } from '@/utils/auth';
 import task from '@/api/task-mgr';
+import email from '@/api/mail';
 export default {
 	data:function(){
 		return{
-			taskName:"",
 			currentIndex:this.dialogVisible,
+			dataList:[],
+			radio:'1',
+			taskName:'',
+			emailGroupId:'',
 		}
 	},
 	props:{
@@ -44,10 +62,27 @@ export default {
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
 			this.taskName = "";
+			this.radio = '1';
+			if ( data ){
+				this.getEmailList();
+			}
 		},
 	},
 	methods: {
 		async complete(){
+			if ( this.radio == 2 ){
+				this.bindMailGroup();
+				return;
+			}
+			if ( !this.taskName ){
+				this.$message({
+					message: "请输入小组ID",
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+				return;
+			}
 			var req = {
 				"token":getToken(),
 				"job_id":this.job_id,
@@ -65,6 +100,62 @@ export default {
 				})
 			}
 		},
+		async bindMailGroup(){
+			if ( !this.emailGroupId ){
+				this.$message({
+					message: "请选择邮件组",
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+				return;
+			}
+			var req = {
+				"token":getToken(),
+				"job_id":this.job_id,
+				"group_id":this.emailGroupId
+			}
+			const data = await email.bindMailGroup(JSON.stringify(req));
+			if ( data.rtn == 0 ){
+				this.callback(true);
+			}else {
+				this.$message({
+					message: data.msg,
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				})
+			}
+		},
+		async getEmailList(){
+			this.dataList = [];
+			var req = {
+				"token":getToken()
+			}
+			const data = await email.getMailGroup(JSON.stringify(req));
+			if ( data.rtn == 0 ){
+				var list = data.data.list || [];
+				for ( var i=0; i<list.length; i++ ){
+					if ( !list[i].job_id ){
+						this.dataList.push(list[i]);
+					}
+				}
+				if ( this.dataList.length > 0 ){
+					this.emailGroupId = list[0].group_id;
+				}
+			}else {
+				this.$message({
+					message: data.msg,
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+			}
+		},
+		mail(){
+			this.callback(false);
+			this.$router.push({ name: 'Mail' });
+		},
 		callback(data){
 			this.$emit('changeStatus',data);	
 			this.currentIndex = false;
@@ -80,15 +171,11 @@ export default {
 			height: 360px;
 		}	
 		/deep/ .el-input__inner{
-			margin-left: 55px;
 			height: 38px;
 			padding-left: 10px;
 			line-height: 38px;
 			color: #48465b;
 		}	
-		/deep/ .el-input{
-			width: 225px;
-		}
 		/deep/ .el-dialog--center .el-dialog__footer .el-button--primary,
 		/deep/ .el-dialog--center .el-dialog__footer{
 			width: 280px;
@@ -98,14 +185,15 @@ export default {
     .list{
 		position: relative;
 		margin-left: 130px;
-		margin-top: 60px;
+		margin-top: 25px;
 		width: 410px;
-		height: 160px;
+		height: 180px;
     	.item{
     		position:relative;
-    		margin-top: 18px;
+    		margin-top: 55px;
 		    width: 280px;
 			height: 38px;
+			text-align: center;
 			font{
 				position:absolute;
 				margin-left: 0px;
@@ -116,6 +204,10 @@ export default {
 				font-stretch: normal;
 				letter-spacing: 0.36px;
 				color: #74788d;
+			}
+			.select-border{
+				margin-left: 75px;
+				width: 205px;
 			}
     	}
     }

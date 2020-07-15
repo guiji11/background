@@ -149,16 +149,25 @@
 				this.getTaskList();
 			},
 			async getAllUser(){
+				if ( this.accType !=1 ){
+					this.getTaskList();
+					return;
+				}
 				var req = {
 					"token":getToken()
 				}
 				const data = await task.getAllUser(JSON.stringify(req));
 				if ( data.rtn ==0 ){
 					this.allUser = data.data.list || [];
-					this.allUser.unshift({"userid":"","name":"全部"})
 					for ( var i=0; i<this.allUser.length; i++ ){
 						this.userObj[this.allUser[i].userid] = this.allUser[i].name;
+						if ( this.allUser[i].name == "admin" ){
+							const obj = this.allUser[i];
+							this.allUser.splice(i, 1);
+							this.allUser.unshift(obj);
+						}
 					}
+					this.allUser.unshift({"userid":"","name":"全部"});
 				}
 				this.getTaskList();
 			},
@@ -190,6 +199,9 @@
 					}
 					this.dataList = list;
 				}else{
+					if ( data.msg.indexOf('nvalid token')!=-1 ){
+						data.msg = "身份验证过期，请重新登录！";
+					}
 					this.$message({
 						message: data.msg,
 						center: true,

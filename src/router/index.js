@@ -11,6 +11,7 @@ const dataSource = () => import('@/page/task/dataSource/index');
 const dataStatistics = () => import('@/page/task/dataStatistics/index');
 const dataMess = () => import('@/page/task/dataMess/index');
 const messageMgr = () => import('@/page/message/index');
+const email = () => import('@/page/mail/index');
 
 const routes = [
 	{
@@ -52,6 +53,11 @@ const routes = [
 			name: 'DataMess',
 			component: dataMess,
 			meta: ['任务管理-消息管理'],
+		},{
+			path: '/mail',
+			name: 'Mail',
+			component: email,
+			meta: ['邮件管理'],
 		}]
 	},
 ]

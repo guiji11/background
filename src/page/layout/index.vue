@@ -11,6 +11,7 @@
 				active-text-color="#3092fc" theme="dark" router>
 				<el-menu-item index="home" v-if="accType==1"><svg-icon iconClass="data-screening" /><span class="menu-name">数据总览</span></el-menu-item>
 				<el-menu-item index="task" id="taskMgr"><svg-icon iconClass="task-mgr" /><span class="menu-name">任务管理</span></el-menu-item>
+				<el-menu-item index="mail"><svg-icon iconClass="email" /><span class="menu-name">邮箱管理</span></el-menu-item>
 				<el-menu-item index="message"><svg-icon iconClass="mess-mgr" /><span class="menu-name">聊天管理</span></el-menu-item>
 			</el-menu>
 		</el-aside>

@@ -1,21 +1,21 @@
 <template>
 	<el-dialog
-	:title="title"
+	:title="groupId?'编辑邮箱组':'添加邮箱组'"
 	:visible.sync="currentIndex"
 	@close ="callback(false)"
 	destroy-on-close
 	append-to-body
 	:close-on-click-modal="false"
-	class="list-border"
+	class="list-borde"
 	center>
 		<div class="list">
 			<div class="item">
-				<font>消息内容 : </font>
-				<el-input v-model="msg" resize="none" type="textarea"/>
+				<div class="name">邮箱组名称 : </div>
+				<el-input v-model="emailName" type="text" />
 			</div>
 			<div class="item">
-				<font>消息数 : </font>
-				<el-input v-model="count" type="text"/>
+				<div class="name">邮箱列表（一行一个邮箱，回车隔开多个） : </div>
+				<el-input v-model="emailList" resize="none" type="textarea"/>
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
@@ -26,25 +26,21 @@
 
 <script>
 import { getToken } from '@/utils/auth';
-import task from '@/api/task-mgr';
+import email from '@/api/mail';
 export default {
 	data:function(){
 		return{
-			msg:"",
-			count:"",
+			emailList:'',
+			emailName:'',
 			currentIndex:this.dialogVisible,
 		}
 	},
 	props:{
-		info: {
-		  type: Object,
-		  required: true
-		},
-		title: {
-		  type: String,
-		  required: true
-		},
-		job_id: {
+		name: {
+			type: String,
+			required: true
+		},	
+		groupId: {
 		  type: String,
 		  required: true
 		},
@@ -56,51 +52,37 @@ export default {
 	watch:{
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
-			this.count = this.info.quota || '';
-			this.msg = this.info.msg || '';
-		},
-		info:function(data){//监听属性变化
-			this.count = this.info.quota || '';
-			this.msg = this.info.msg || '';
+			this.emailName = this.name || '';
+			this.emailList = '';
 		},
 	},
 	methods: {
 		async complete(){
-			if ( !this.msg ){
+			if ( !this.emailName ){
 				this.$message({
-					message: "请输入消息内容",
+					message: "请输入邮箱组名称",
 					center: true,
 					type: 'error',
 					duration: 3 * 1000
 				});
-				return;
-			}else if ( this.msg.indexOf('http')!=-1 ){
-				this.$message({
-					message: "消息内容不能包含http链接",
-					center: true,
-					type: 'error',
-					duration: 3 * 1000
-				});
-				return;
-			}else if ( this.info.msg_id && this.count < this.info.quota ){
-				this.$message({
-					message: "编辑下消息数不能小于之前已设定目标消息数 "+this.info.quota,
-					center: true,
-					type: 'error',
-					duration: 3 * 1000
-				})
 				return;
 			}
+			const list = this.myTrim(this.emailList).split('\n') || [];
 			var req = {
 				"token":getToken(),
-				"job_id":this.job_id,
-				"msg":this.myTrim(this.msg),
-				"quota":Number(this.count || 0),
-				"msg_id": this.info.msg_id || "",
+				"group_id":this.groupId,
+				"name":this.emailName,
+				"list":list,
 			}
-			const data = await task.setMess(JSON.stringify(req));
+			const data = await email.addMailGroup(JSON.stringify(req));
 			if ( data.rtn == 0 ){
 				this.callback(true);
+				this.$message({
+					message: "success",
+					center: true,
+					type: 'success',
+					duration: 3 * 1000
+				})
 			}else {
 				this.$message({
 					message: data.msg,
@@ -121,26 +103,24 @@ export default {
 }			
 </script>
 
-<style lang="less" scoped="">
-	.list-border {                        
+<style lang="less" scoped>
+	.list-borde {                        
 		/deep/ .el-dialog {
-			width: 540px;
-			height: 380px;
+			width: 826px;
+			height: 560px;
 		}	
 		/deep/ .el-input__inner{
-			margin-left: 65px;
 			height: 38px;
 			padding-left: 10px;
 			line-height: 38px;
 			color: #48465b;
 		}	
 		/deep/ .el-input{
-			width: 280px;
+			width: 662px;
 		}
 		/deep/ .el-textarea__inner {
-			margin-left: 65px;
 			font-size: 12px;
-			height: 100px;
+			height: 230px;
 		}
 		/deep/ .el-dialog--center .el-dialog__footer .el-button--primary,
 		/deep/ .el-dialog--center .el-dialog__footer{
@@ -151,15 +131,14 @@ export default {
     .list{
 		position: relative;
 		margin-left: 65px;
-		margin-top: 40px;
-		width: 410px;
-		height: 200px;
+		margin-top: 20px;
+		width: 736px;
+		height: 380px;
     	.item{
     		position:relative;
     		margin-top: 18px;
-		    width: 280px;
-			font{
-				position:absolute;
+		    width: 662px;
+			.name{
 				margin-left: 0px;
 				z-index: 1;
 				line-height: 38px;

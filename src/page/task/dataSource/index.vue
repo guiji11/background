@@ -211,6 +211,16 @@
 				if ( data.rtn ==0 ){
 					this.taskList = data.data.list || [];
 					this.taskId = this.jobId;
+				}else{
+					if ( data.msg.indexOf('nvalid token')!=-1 ){
+						data.msg = "身份验证过期，请重新登录！";
+					}
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
 				}
             }			
         },
@@ -298,6 +308,7 @@
 		}
 		.delete{
 			position: absolute;
+			display:none;
 			margin-top: 1px;
 			width: 23px;
 			height: 23px;
@@ -305,6 +316,10 @@
 		}
 		.margin{
 			margin-left: 12px;
+		}
+		/deep/ .el-table__row:hover .delete{
+			display:initial;
+			transition: all,.3s;
 		}
 	}
 	.table-pagination /deep/{

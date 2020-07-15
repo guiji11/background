@@ -53,7 +53,7 @@
 
 <script>
     import task from '@/api/task-mgr';
-    import { getToken, getUserId } from '@/utils/auth';
+    import { getToken, getUserId, getUserType } from '@/utils/auth';
     import moment from 'moment';
     import { mapGetters } from 'vuex';
     export default {
@@ -75,7 +75,9 @@
                 all_mess:false,
                 currentPage:1,
 				pageSize:100,
-				pageTotal:1,
+                pageTotal:1,
+                userid:'',
+                accType:getUserType(),
             }
         },
         computed: {
@@ -100,9 +102,12 @@
                 this.sessionListPage();
             },
             async getTaskList(){
+                if ( this.accType !=1 ){
+					this.userid = getUserId();
+				}
 				var req = {
                     "token":getToken(),
-                    "userid":getUserId(),
+                    "userid":this.userid,
 				}
 				const data = await task.getTaskList(JSON.stringify(req));
 				if ( data.rtn ==0 ){
@@ -123,6 +128,7 @@
             getSessionList(obj){
                 this.cur_task = obj.job_id;
                 this.currentPage = 1;
+                this.pageTotal = 1;
                 this.accList = [];
                 this.chatList = [];
                 this.cur_session = {};
