@@ -22,11 +22,15 @@
 					</el-table-column>
 					<el-table-column
 						prop="total"
-					    label="总成员数">
+					    label="总邮箱数">
 					</el-table-column>
 					<el-table-column
 						prop="changed"
-					    label="转换后成员数">
+					    label="已完成">
+					</el-table-column>
+					<el-table-column
+						prop="valid_num"
+					    label="有效FB账号数">
 					</el-table-column>
 					<el-table-column
 						width="130px"

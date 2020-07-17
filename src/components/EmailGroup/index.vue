@@ -14,12 +14,12 @@
 				<el-input v-model="emailName" type="text" />
 			</div>
 			<div class="item">
-				<div class="name">邮箱列表（一行一个邮箱，回车隔开多个） : </div>
+				<div class="name">邮箱列表（一行一个邮箱，回车隔开多个邮箱）: </div>
 				<el-input v-model="emailList" resize="none" type="textarea"/>
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
-			<el-button type="primary"  @click.native.prevent="complete()">确 定</el-button>
+			<el-button type="primary" :disabled="loading" @click.native.prevent="complete()">确 定</el-button>
 		</span>
 	</el-dialog>
 </template>
@@ -33,6 +33,7 @@ export default {
 			emailList:'',
 			emailName:'',
 			currentIndex:this.dialogVisible,
+			loading:false,
 		}
 	},
 	props:{
@@ -74,9 +75,11 @@ export default {
 				"name":this.emailName,
 				"list":list,
 			}
+			this.loading = true;
 			const data = await email.addMailGroup(JSON.stringify(req));
 			if ( data.rtn == 0 ){
 				this.callback(true);
+				this.loading = false;
 				this.$message({
 					message: "success",
 					center: true,
@@ -84,6 +87,7 @@ export default {
 					duration: 3 * 1000
 				})
 			}else {
+				this.loading = false;
 				this.$message({
 					message: data.msg,
 					center: true,

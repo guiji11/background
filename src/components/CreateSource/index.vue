@@ -29,7 +29,7 @@
 			<div class="item" v-show="radio==2&&dataList.length==0"><font style="position: relative;">无可用的邮箱组，</font><font @click="mail()" style="position: relative;color:#3092fc;cursor:pointer;">去添加-></font></div>
 		</div>
 		<span slot="footer" class="dialog-footer">
-			<el-button type="primary"  @click.native.prevent="complete()">确 定</el-button>
+			<el-button type="primary" :disabled="loading" @click.native.prevent="complete()">确 定</el-button>
 		</span>
 	</el-dialog>
 </template>
@@ -46,6 +46,7 @@ export default {
 			radio:'1',
 			taskName:'',
 			emailGroupId:'',
+			loading:false,
 		}
 	},
 	props:{
@@ -88,10 +89,13 @@ export default {
 				"job_id":this.job_id,
 				"fb_group_id":this.taskName
 			}
+			this.loading = true;
 			const data = await task.setSource(JSON.stringify(req));
 			if ( data.rtn == 0 ){
 				this.callback(true);
+				this.loading = false;
 			}else {
+				this.loading = false;
 				this.$message({
 					message: data.msg,
 					center: true,
@@ -141,7 +145,7 @@ export default {
 					}
 				}
 				if ( this.dataList.length > 0 ){
-					this.emailGroupId = list[0].group_id;
+					this.emailGroupId = this.dataList[0].group_id;
 				}
 			}else {
 				this.$message({

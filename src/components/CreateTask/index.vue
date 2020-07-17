@@ -15,7 +15,7 @@
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
-			<el-button type="primary"  @click.native.prevent="complete()">确 定</el-button>
+			<el-button type="primary" :disabled="loading" @click.native.prevent="complete()">确 定</el-button>
 		</span>
 	</el-dialog>
 </template>
@@ -28,6 +28,7 @@ export default {
 		return{
 			taskName:"",
 			currentIndex:this.dialogVisible,
+			loading:false,
 		}
 	},
 	props:{
@@ -48,10 +49,13 @@ export default {
 				"token":getToken(),
 				"job_name":this.taskName
 			}
+			this.loading = true;
 			const data = await task.createTask(JSON.stringify(req));
 			if ( data.rtn == 0 ){
 				this.callback(true);
+				this.loading = false;
 			}else {
+				this.loading = false;
 				this.$message({
 					message: data.msg,
 					center: true,

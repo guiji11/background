@@ -19,7 +19,7 @@
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
-			<el-button type="primary"  @click.native.prevent="complete()">确 定</el-button>
+			<el-button type="primary" :disabled="loading" @click.native.prevent="complete()">确 定</el-button>
 		</span>
 	</el-dialog>
 </template>
@@ -33,6 +33,7 @@ export default {
 			msg:"",
 			count:"",
 			currentIndex:this.dialogVisible,
+			loading:false,
 		}
 	},
 	props:{
@@ -98,10 +99,13 @@ export default {
 				"quota":Number(this.count || 0),
 				"msg_id": this.info.msg_id || "",
 			}
+			this.loading = true;
 			const data = await task.setMess(JSON.stringify(req));
 			if ( data.rtn == 0 ){
 				this.callback(true);
+				this.loading = false;
 			}else {
+				this.loading = false;
 				this.$message({
 					message: data.msg,
 					center: true,

@@ -74,7 +74,7 @@
                 last_ts:-1,
                 all_mess:false,
                 currentPage:1,
-				pageSize:100,
+				pageSize:150,
                 pageTotal:1,
                 userid:'',
                 accType:getUserType(),
