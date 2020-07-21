@@ -126,8 +126,10 @@
 			ServerCc
 		},
         mounted(){
-			if ( this.accType !=1 ){
+			if ( this.accType ==2 ){
 				this.$router.push({ name: "TaskMgr" }); 
+			}else if ( this.accType ==3 ){
+				this.$router.push({ name: 'MessageMgr' });
 			}
 		},
 		activated(){

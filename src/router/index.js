@@ -11,7 +11,8 @@ const dataSource = () => import('@/page/task/dataSource/index');
 const dataStatistics = () => import('@/page/task/dataStatistics/index');
 const dataMess = () => import('@/page/task/dataMess/index');
 const messageMgr = () => import('@/page/message/index');
-const email = () => import('@/page/mail/index');
+const source = () => import('@/page/source/index');
+const sub = () => import('@/page/sub/index');
 
 const routes = [
 	{
@@ -56,8 +57,13 @@ const routes = [
 		},{
 			path: '/mail',
 			name: 'Mail',
-			component: email,
-			meta: ['邮件管理'],
+			component: source,
+			meta: ['数据源管理'],
+		},{
+			path: '/sub',
+			name: 'Sub',
+			component: sub,
+			meta: ['子账号管理'],
 		}]
 	},
 ]

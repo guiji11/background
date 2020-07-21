@@ -10,8 +10,9 @@
 				text-color="#768492"
 				active-text-color="#3092fc" theme="dark" router>
 				<el-menu-item index="home" v-if="accType==1"><svg-icon iconClass="data-screening" /><span class="menu-name">数据总览</span></el-menu-item>
-				<el-menu-item index="task" id="taskMgr"><svg-icon iconClass="task-mgr" /><span class="menu-name">任务管理</span></el-menu-item>
-				<el-menu-item index="mail"><svg-icon iconClass="email" /><span class="menu-name">数据源管理</span></el-menu-item>
+				<el-menu-item index="task" id="taskMgr" v-if="accType!=3"><svg-icon iconClass="task-mgr" /><span class="menu-name">任务管理</span></el-menu-item>
+				<el-menu-item index="mail" v-if="accType!=3"><svg-icon iconClass="email" /><span class="menu-name">数据源管理</span></el-menu-item>
+				<el-menu-item index="sub" v-if="accType!=3"><svg-icon iconClass="sub-acc" /><span class="menu-name">子账号管理</span></el-menu-item>
 				<el-menu-item index="message"><svg-icon iconClass="mess-mgr" /><span class="menu-name">聊天管理</span></el-menu-item>
 			</el-menu>
 		</el-aside>
@@ -47,8 +48,10 @@
 			if ( this.$route.path == "/" ){
 				if ( this.accType == 1 ){
 					this.$router.push({ name: 'Home' });
-				}else{
+				}else if ( this.accType == 2 ){
 					this.$router.push({ name: 'TaskMgr' });
+				}else{
+					this.$router.push({ name: 'MessageMgr' });
 				}
 			}
 		},

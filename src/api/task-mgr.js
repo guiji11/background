@@ -14,7 +14,6 @@ const func = {
   manageSource:manage_source,
   setAutoDialog:set_auto_dialog,
   getAutoDialog:get_auto_dialog,
-  getAllUser:get_all_user,
   setJobRuntime:set_job_runtime,
 }
 
@@ -101,14 +100,6 @@ function set_auto_dialog(data) {                                                
 function get_auto_dialog(data) {                                                  //查询智能回复
   return request({
     url: url + "fb_api/get_auto_dialog",
-    method: 'post',
-    data
-  })
-}
-
-function get_all_user(data) {                                                    //查询所有用户
-  return request({
-    url: url + "fb_api/get_all_user",
     method: 'post',
     data
   })

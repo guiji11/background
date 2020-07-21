@@ -59,19 +59,20 @@
 				</el-pagination>
 			</div>
 		</div>
-		<email-group :dialogVisible="showDialog" :groupId="groupId" :typeRadio="sourceType" :name="name" @changeStatus="closeDialog"></email-group>
+		<create-source :dialogVisible="showDialog" :groupId="groupId" :typeRadio="sourceType" :name="name" @changeStatus="closeDialog"></create-source>
     </div>
 </template>
 
 <script>
 	import email from '@/api/mail';
 	import task from '@/api/task-mgr';
-	import { getToken } from '@/utils/auth'
+	import { getToken, getUserType } from '@/utils/auth'
 	import { MessageBox } from 'element-ui'
-	import EmailGroup from '@/components/EmailGroup';
+	import CreateSource from '@/components/CreateSource';
     export default {
         data(){
             return {
+				accType:getUserType(),
 				listLoading:false,
 				groupId:'',
 				name:'',
@@ -85,11 +86,14 @@
             }
 		},
 		components: {
-			EmailGroup
+			CreateSource
 		},
 		activated(){
 			if ( this.$route.query.type ){
 				this.sourceType = this.$route.query.type;
+			}
+			if ( this.accType ==3 ){
+				this.$router.push({ name: 'MessageMgr' });
 			}
 			this.getTaskList();
 		},

@@ -36,8 +36,8 @@
 		methods: {
 			handleLogin() {
 				var req = {
-					'name': this.loginForm.username,
-					'pwd': this.loginForm.password,
+					'name': this.myTrim(this.loginForm.username),
+					'pwd': this.myTrim(this.loginForm.password),
 				}
 				login(JSON.stringify(req)).then(data => {
 					if ( data.rtn == 0 ){
@@ -47,8 +47,10 @@
 						setUserId(data.data.userid);
 						if ( data.data.type == 1 ){
 							this.$router.push({ name: 'Home' });
-						}else{
+						}else if ( data.data.type == 2 ){
 							this.$router.push({ name: 'TaskMgr' });
+						}else{
+							this.$router.push({ name: 'MessageMgr' });
 						}
 					}else{
 						this.$message({
@@ -60,6 +62,9 @@
 					}
 				})
 			},
+			myTrim(x) {
+                return x.replace(/^\s+|\s+$/gm,'');
+            }
 		},
 	}
 </script>

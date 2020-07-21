@@ -1,7 +1,7 @@
 <template>
     <div class="fillcontain">
 		<svg-icon iconClass="return" class="return" @click.native.prevent="returnPage()"/>
-		<h2 class="title">任务管理 / 数据源管理</h2>
+		<h2 class="title">任务管理 / 数据源绑定</h2>
 		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">绑定数据源</el-button>
 		<div class="table-title">
 			<div class="table-item">
@@ -80,12 +80,12 @@
 				</el-pagination>
 			</div>
 		</div>
-		<create-source :job_id="jobId" :dialogVisible="showSourceDialog" @changeStatus="closeDialog"></create-source>
+		<bind-source :job_id="jobId" :dialogVisible="showSourceDialog" @changeStatus="closeDialog"></bind-source>
     </div>
 </template>
 
 <script>
-	import CreateSource from '@/components/CreateSource';
+	import BindSource from '@/components/BindSource';
 	import task from '@/api/task-mgr';
 	import { getToken, getJobId, setJobId, getUserType, getUserId } from '@/utils/auth';
 	import moment from 'moment';
@@ -108,12 +108,15 @@
             }
 		},
 		components: {
-			CreateSource,
+			BindSource,
 		},
 		created(){
 			this.getTaskList();
 		},
         mounted(){
+			if ( this.accType ==3 ){
+				this.$router.push({ name: 'MessageMgr' });
+			}
 			this.getSourceList();
 			document.getElementById('taskMgr').classList.add("is-active");
 		},

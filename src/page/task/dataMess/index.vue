@@ -51,7 +51,7 @@
 					    label="发送内容">
 						<template scope="scope">
 							<el-tooltip effect="dark" :content="scope.row.msg" placement="top">
-								<span>{{scope.row.msg}}</span>
+								<div>{{scope.row.msg}}</div>
 							</el-tooltip>
 						</template>
 					</el-table-column>
@@ -136,6 +136,9 @@
 			this.getTaskList();
 		},
         mounted(){
+			if ( this.accType ==3 ){
+				this.$router.push({ name: 'MessageMgr' });
+			}
 			document.getElementById('taskMgr').classList.add("is-active");
 		},
 		destroyed(){
@@ -241,6 +244,7 @@
 				const data = await task.getMess(JSON.stringify(req));
 				if ( data.rtn ==0 ){
 					var list = data.data.list || [];
+					list.sort(function(a,b){return b.status - a.status;});
 					const obj = this.taskList.find( value =>value.job_id == this.jobId);
 					for ( var i=0; i<list.length;i++ ){
 						var reply_per = 0;

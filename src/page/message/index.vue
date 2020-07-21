@@ -401,7 +401,7 @@
         bottom: 30px;
         left: 19px;
         right:19px;
-        max-width: 1300px;
+        max-width: 1450px;
     }
     .gray{
         -webkit-filter: grayscale(100%);

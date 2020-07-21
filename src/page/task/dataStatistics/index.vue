@@ -2,10 +2,6 @@
     <div class="fillcontain">
 		<svg-icon iconClass="return" class="return" @click.native.prevent="returnPage()"/>
 		<h2 class="title">任务管理 / 数据统计</h2>
-		<div class="echart">
-			<div class="list-chart" id="echart_bar"></div>
-			<div class="list-chart" style="background-color: #172b4d" id="echart_line"></div>
-		</div>
 		<div class="table-title">
 			<div class="table-item">
 				<font class="title">日期选择 ：</font>
@@ -19,6 +15,10 @@
 					end-placeholder="结束日期">
 				</el-date-picker>
 			</div>
+		</div>
+		<div class="echart">
+			<div class="list-chart" id="echart_bar"></div>
+			<div class="list-chart" style="background-color: #172b4d" id="echart_line"></div>
 		</div>
 		<div class="list">
 			<div class="table-content">
@@ -128,6 +128,9 @@
 			this.getTaskList();
 		},
         mounted(){
+			if ( this.accType ==3 ){
+				this.$router.push({ name: 'MessageMgr' });
+			}
 			document.getElementById('taskMgr').classList.add("is-active");
 		},
 		destroyed(){
@@ -341,7 +344,8 @@
 	}
 }
 .table-title{
-    position: relative;
+	position: relative;
+	margin-top: 13px;
     left: 0px;
     right: 320px;
     height: 34px;

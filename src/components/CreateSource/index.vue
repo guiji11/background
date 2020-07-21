@@ -1,50 +1,23 @@
 <template>
 	<el-dialog
-	title="绑定数据源"
+	:title="groupId?'编辑数据源':'创建数据源'"
 	:visible.sync="currentIndex"
 	@close ="callback(false)"
 	destroy-on-close
 	append-to-body
 	:close-on-click-modal="false"
-	class="list-border"
+	class="list-borde"
 	center>
 		<div class="list">
-			<el-radio v-model="radio" label="3">通过小组ID</el-radio>
-			<el-radio v-model="radio" label="1">通过邮箱组</el-radio>
-			<el-radio v-model="radio" label="2">通过自建FB组</el-radio>
-			<div class="item" v-show="radio==3">
-				<font>输入小组ID : </font>
-				<el-input v-model="taskName" type="text" class="select-border"/>
+			<el-radio v-model="radio" label="1" @change="changeLabel()" :disabled="maildi">邮箱组</el-radio>
+			<el-radio v-model="radio" label="2" @change="changeLabel()" :disabled="fbdi">自建FB组</el-radio>
+			<div class="item">
+				<div class="name">组名称 : </div>
+				<el-input v-model="emailName" type="text" />
 			</div>
-			<div class="item" v-show="radio==1&&dataList.length>0">
-				<font>选择邮箱组 : </font>
-				<el-select v-model="emailGroupId" class="select-border" >
-					<el-option
-						v-for="item in dataList"
-						:key="item.group_id"
-						:label="item.name"
-						:value="item.group_id">
-					</el-option>
-				</el-select>
-			</div>
-			<div class="item" v-show="radio==1&&dataList.length==0">
-				<font style="position: relative;">无可用的邮箱组，</font>
-				<font @click="mail(1)" style="position: relative;color:#3092fc;cursor:pointer;">去添加-></font>
-			</div>
-			<div class="item" v-show="radio==2&&dataFbList.length>0">
-				<font>选择FB组 : </font>
-				<el-select v-model="fbGroupId" class="select-border" >
-					<el-option
-						v-for="item in dataFbList"
-						:key="item.group_id"
-						:label="item.name"
-						:value="item.group_id">
-					</el-option>
-				</el-select>
-			</div>
-			<div class="item" v-show="radio==2&&dataFbList.length==0">
-				<font style="position: relative;">无可用的自建FB组，</font>
-				<font @click="mail(2)" style="position: relative;color:#3092fc;cursor:pointer;">去添加-></font>
+			<div class="item">
+				<div class="name">{{radio==1?'邮箱列表（ 一行一个邮箱，回车隔开多个邮箱 ）:':'FB组列表（ 为一个数组，输入格式：["xx","aa"] ）'}}</div>
+				<el-input v-model="emailList" resize="none" type="textarea"/>
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
@@ -55,23 +28,29 @@
 
 <script>
 import { getToken } from '@/utils/auth';
-import task from '@/api/task-mgr';
 import email from '@/api/mail';
 export default {
 	data:function(){
 		return{
+			emailList:'',
+			emailName:'',
 			currentIndex:this.dialogVisible,
-			dataList:[],
-			radio:'3',
-			taskName:'',
-			emailGroupId:'',
 			loading:false,
-			dataFbList:[],
-			fbGroupId:'',
+			radio:"1",
+			maildi:false,
+			fbdi:false,
 		}
 	},
 	props:{
-		job_id: {
+		name: {
+			type: String,
+			required: true
+		},
+		typeRadio: {
+			type: Number,
+			required: false
+		},		
+		groupId: {
 		  type: String,
 		  required: true
 		},
@@ -82,40 +61,69 @@ export default {
 	},
 	watch:{
 		dialogVisible:function(data){//监听属性变化
+			this.loading = false;
+			this.maildi = false;
+			this.fbdi = false;
 			this.currentIndex = data;
-			this.taskName = "";
-			this.radio = '3';
-			if ( data ){
-				this.getEmailList(1);
-				this.getEmailList(2);
+			this.emailName = this.name || '';
+			this.emailList = '';
+			this.radio = String(this.typeRadio);
+			if ( this.groupId && this.typeRadio == 1 ){
+				this.fbdi = true;
+			}
+			if ( this.groupId && this.typeRadio == 2 ){
+				this.maildi = true;
 			}
 		},
 	},
 	methods: {
+		changeLabel(){
+			this.emailList = '';
+		},
 		async complete(){
-			if ( this.radio !='3' ){
-				this.bindSrcGroup();
-				return;
-			}
-			if ( !this.taskName ){
+			if ( !this.emailName ){
 				this.$message({
-					message: "请输入小组ID",
+					message: "请输入组名称",
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+				return;
+			}else if ( this.radio =='2' && this.emailList && this.emailList.indexOf('[')==-1 ){
+				this.$message({
+					message: "FB组列表输入格式有误，请输入一个数组",
 					center: true,
 					type: 'error',
 					duration: 3 * 1000
 				});
 				return;
 			}
+			if ( this.radio =='1' ){
+				var list = this.myTrim(this.emailList).split('\n') || [];
+			}else if ( this.radio =='2' && this.emailList ){
+				var value = this.myTrim(this.emailList);
+				var list = eval('(' + value + ')') || [];
+			}else{
+				var list = [];
+			}
 			var req = {
 				"token":getToken(),
-				"job_id":this.job_id,
-				"fb_group_id":this.taskName
+				"group_id":this.groupId,
+				"type":Number(this.radio),
+				"name":this.emailName,
+				"list":list,
 			}
 			this.loading = true;
-			const data = await task.setSource(JSON.stringify(req));
+			const data = await email.addSrcGroup(JSON.stringify(req));
 			if ( data.rtn == 0 ){
-				this.callback(true);
+				this.callback(Number(this.radio));
 				this.loading = false;
+				this.$message({
+					message: "success",
+					center: true,
+					type: 'success',
+					duration: 3 * 1000
+				})
 			}else {
 				this.loading = false;
 				this.$message({
@@ -126,64 +134,8 @@ export default {
 				})
 			}
 		},
-		async bindSrcGroup(){
-			if ( this.radio == '1' ){
-				var group_id = this.emailGroupId;
-			}else{
-				var group_id = this.fbGroupId;
-			}
-			var req = {
-				"token":getToken(),
-				"job_id":this.job_id,
-				"group_id":group_id,
-				"type":Number(this.radio)
-			}
-			const data = await email.bindSrcGroup(JSON.stringify(req));
-			if ( data.rtn == 0 ){
-				this.callback(true);
-			}else {
-				this.$message({
-					message: data.msg,
-					center: true,
-					type: 'error',
-					duration: 3 * 1000
-				})
-			}
-		},
-		async getEmailList(type){
-			this.dataList = [];
-			var req = {
-				"token":getToken(),
-				"type":type
-			}
-			const data = await email.getSrcGroup(JSON.stringify(req));
-			if ( data.rtn == 0 ){
-				var list = data.data.list || [];
-				for ( var i=0; i<list.length; i++ ){
-					if ( !list[i].job_id && type==1 ){
-						this.dataList.push(list[i]);
-					}else if ( !list[i].job_id && type==2 ){
-						this.dataFbList.push(list[i]);
-					}
-				}
-				if ( this.dataList.length > 0 ){
-					this.emailGroupId = this.dataList[0].group_id;
-				}
-				if ( this.dataFbList.length > 0 ){
-					this.fbGroupId = this.dataFbList[0].group_id;
-				}
-			}else {
-				this.$message({
-					message: data.msg,
-					center: true,
-					type: 'error',
-					duration: 3 * 1000
-				});
-			}
-		},
-		mail(type){
-			this.callback(false);
-			this.$router.push({ name: 'Mail',query:{"type":type} });
+		myTrim(x) {
+			return x.replace(/^\s+|\s+$/gm,'');
 		},
 		callback(data){
 			this.$emit('changeStatus',data);	
@@ -193,11 +145,11 @@ export default {
 }			
 </script>
 
-<style lang="less" scoped="">
-	.list-border {                        
+<style lang="less" scoped>
+	.list-borde {                        
 		/deep/ .el-dialog {
-			width: 540px;
-			height: 360px;
+			width: 826px;
+			height: 560px;
 		}	
 		/deep/ .el-input__inner{
 			height: 38px;
@@ -205,6 +157,13 @@ export default {
 			line-height: 38px;
 			color: #48465b;
 		}	
+		/deep/ .el-input{
+			width: 662px;
+		}
+		/deep/ .el-textarea__inner {
+			font-size: 12px;
+			height: 215px;
+		}
 		/deep/ .el-dialog--center .el-dialog__footer .el-button--primary,
 		/deep/ .el-dialog--center .el-dialog__footer{
 			width: 280px;
@@ -213,18 +172,15 @@ export default {
     }
     .list{
 		position: relative;
-		margin-left: 80px;
-		margin-top: 25px;
-		width: 410px;
-		height: 180px;
+		margin-left: 65px;
+		margin-top: 20px;
+		width: 736px;
+		height: 380px;
     	.item{
     		position:relative;
-    		margin-top: 55px;
-		    width: 280px;
-			height: 38px;
-			text-align: center;
-			font{
-				position:absolute;
+    		margin-top: 15px;
+		    width: 662px;
+			.name{
 				margin-left: 0px;
 				z-index: 1;
 				line-height: 38px;
@@ -233,10 +189,6 @@ export default {
 				font-stretch: normal;
 				letter-spacing: 0.36px;
 				color: #74788d;
-			}
-			.select-border{
-				margin-left: 75px;
-				width: 205px;
 			}
     	}
     }

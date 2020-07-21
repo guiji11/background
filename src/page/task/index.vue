@@ -7,6 +7,7 @@
 				<el-table
 					v-loading="listLoading"
 					height="100%"
+					:highlight-current-row ="highlight"
 					element-loading-text="Loading"
 					:data="dataList"
 					tooltip-effect="dark">
@@ -22,7 +23,7 @@
 					    width="180px">
 						<template slot="header" slot-scope="scope">
 							<div class="table-item">
-								<font class="title">用户名</font>
+								<font class="title">所属用户</font>
 								<el-select v-model="userid" placeholder="全部" @change="changeUser" class="select-border"  >
 									<el-option
 										v-for="item in allUser"
@@ -73,6 +74,7 @@
 									<button class="check-info" @click="checkInfo(scope.row,'DataMess')">群发消息</button>
 									<button class="check-info" @click="checkInfo(scope.row,'DataSource')">数据源绑定</button>
 									<button class="check-info" @click="showChatDialog(scope.row)">智能回复</button>
+									<button class="check-info" @click="showSubDialog(scope.row)" v-if="accType!=1">分配客服</button>
                                 </div>
                                 <el-button slot="reference" class="popover-btn"></el-button>
                             </el-popover>
@@ -93,13 +95,16 @@
 		</div>
 		<create-task :dialogVisible="showCreateTask" @changeStatus="closeDialog"></create-task>
 		<auto-chat :jobId = "jobId" :dialogVisible="showAutoChat" @changeStatus="closeDialog"></auto-chat>
+		<district-acc :info = "info" :dialogVisible="showSub" @changeStatus="closeDialog"></district-acc>
     </div>
 </template>
 
 <script>
 	import AutoChat from '@/components/AutoChat';
 	import CreateTask from '@/components/CreateTask';
+	import DistrictAcc from '@/components/DistrictAcc';
 	import task from '@/api/task-mgr';
+	import sub from '@/api/sub';
 	import { getToken, setJobId, getUserType, getUserId } from '@/utils/auth';
 	import moment from 'moment';
     export default {
@@ -107,9 +112,11 @@
         data(){
             return {
 				accType:getUserType(),
+				highlight:true,
 				listLoading:true,
 				showCreateTask:false,
 				showAutoChat:false,
+				showSub:false,
 				jobId:'',
 				currentPage:1,
 				pageSize:100,
@@ -118,11 +125,13 @@
 				allUser:[],
 				userObj:{},
 				userid:'',
+				info:{},
             }
 		},
 		components: {
 			CreateTask,
 			AutoChat,
+			DistrictAcc
 		},
 		computed: {
 			key: function(){
@@ -130,6 +139,9 @@
 			},
 		},
 		mounted(){
+			if ( this.accType ==3 ){
+				this.$router.push({ name: 'MessageMgr' });
+			}
 			this.getAllUser();
 			document.getElementById('taskMgr').classList.add("is-active");
 		},
@@ -145,12 +157,17 @@
 				this.jobId = obj.job_id;
 				this.showAutoChat = true;
 			},
+			showSubDialog(obj){
+				this.info = obj;
+				this.showSub = true;
+			},
 			showDialog(){
 				this.showCreateTask = true;
 			},
 			closeDialog(data){
 				this.showCreateTask = false;
 				this.showAutoChat = false;
+				this.showSub = false;
 				if ( data ){
 					this.getTaskList();
 				}
@@ -159,14 +176,10 @@
 				this.getTaskList();
 			},
 			async getAllUser(){
-				if ( this.accType !=1 ){
-					this.getTaskList();
-					return;
-				}
 				var req = {
 					"token":getToken()
 				}
-				const data = await task.getAllUser(JSON.stringify(req));
+				const data = await sub.getAllUser(JSON.stringify(req));
 				if ( data.rtn ==0 ){
 					this.allUser = data.data.list || [];
 					this.allUser.sort((a,b) => a.name.localeCompare(b.name));
