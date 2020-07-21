@@ -59,13 +59,23 @@
 					    label="剩余可用消息数">
 					</el-table-column>
 					<el-table-column
-						width="350px"
-					    label="任务管理">
-					    <template scope="scope">
-							<button class="check-info" @click="checkInfo(scope.row,'DataStatistics')">数据统计</button>
-							<button class="check-info margin" @click="checkInfo(scope.row,'DataMess')">消息</button>
-							<button class="check-info margin" @click="checkInfo(scope.row,'DataSource')">数据源</button>
-							<button class="check-info margin" @click="showChatDialog(scope.row)">智能回复</button>
+					    label="操作">
+						 <template scope="scope">
+							<svg-icon iconClass="more" class="info-icon"/>
+                            <el-popover
+                            placement="left"
+                            width="79"
+                            :visible-arrow="false"
+                            transition="fade-transform"
+                            trigger="hover">
+                                <div class="popover-border">
+									<button class="check-info" @click="checkInfo(scope.row,'DataStatistics')">数据统计</button>
+									<button class="check-info" @click="checkInfo(scope.row,'DataMess')">群发消息</button>
+									<button class="check-info" @click="checkInfo(scope.row,'DataSource')">数据源绑定</button>
+									<button class="check-info" @click="showChatDialog(scope.row)">智能回复</button>
+                                </div>
+                                <el-button slot="reference" class="popover-btn"></el-button>
+                            </el-popover>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -119,7 +129,7 @@
 				return this.$route.path.replace('/', '');
 			},
 		},
-		activated(){
+		mounted(){
 			this.getAllUser();
 			document.getElementById('taskMgr').classList.add("is-active");
 		},
@@ -266,14 +276,14 @@
             cursor: pointer;
         }
         .popover-btn{
-            position: absolute;
-            margin-left: 0px;
-            top: 9px;
-            cursor: pointer;
-            min-width: 24px;
-            min-height: 23px;
+			position: absolute;
+			margin-left: 0px;
+			top: 2px;
+			cursor: pointer;
+			min-width: 40px;
+			min-height: 34px;
 			opacity: 0;
-			z-index: 10;
+			z-index: 3;
 		}
 		.table-item{
 			padding-left: 0px;

@@ -17,7 +17,7 @@
 		</el-aside>
 		<el-main class="right-main">
 			<transition name="fade-transform" mode="out-in">
-				<keep-alive exclude="DataSource,DataStatistics,DataMess">           <!--exclude和include用法要求在需要的组件内声明name，否则无效 -->
+				<keep-alive exclude="DataSource,DataStatistics,DataMess,TaskMgr">           <!--exclude和include用法要求在需要的组件内声明name，否则无效 -->
 					<router-view :key="defaultActive" />
 				</keep-alive>
 			</transition>
