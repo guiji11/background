@@ -2,7 +2,7 @@
     <div class="fillcontain">
 		<svg-icon iconClass="return" class="return" @click.native.prevent="returnPage()"/>
 		<h2 class="title">任务管理 / 数据源管理</h2>
-		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">创建数据源</el-button>
+		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">绑定数据源</el-button>
 		<div class="table-title">
 			<div class="table-item">
 				<font class="title">任务名</font>
@@ -247,7 +247,7 @@
 	position:absolute;
 	margin-top: 12px;
 	float:right;
-	right:22px;
+	right:18px;
 	width: 130px;
 	height: 36px;
 	background-color: #7a9e9f;

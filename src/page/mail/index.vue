@@ -1,7 +1,9 @@
 <template>
     <div class="fillcontain">
-		<h2 class="title">邮箱管理</h2>
-		<el-button class="create-mess-btn" @click.native.prevent="editGroup('','')">添加邮箱组</el-button>
+		<h2 class="title">数据源管理</h2>
+		<el-button class="create-mess-btn" @click.native.prevent="editGroup('','')">创建数据源</el-button>
+		<div :class="['mail-mgr-tag',sourceType==1?'sel':'']" @click="changeType(1)">邮箱组管理</div>
+		<div :class="['other-mgr-tag',sourceType==1?'':'sel']" @click="changeType(2)">自建FB组管理</div>
 		<div class="list">
 			<div class="table-content">
 				<el-table
@@ -11,7 +13,7 @@
 					:data="dataList"
 					tooltip-effect="dark">
 					<el-table-column
-					    label="邮箱组名称">
+					    label="名称">
 					    <template scope="scope">
 							<span style="font-weight:600;">{{scope.row.name}}</span>
 						</template>
@@ -22,15 +24,19 @@
 					</el-table-column>
 					<el-table-column
 						prop="total"
-					    label="总邮箱数">
+					    label="导入总数">
 					</el-table-column>
 					<el-table-column
-						prop="changed"
 					    label="已完成">
+							<template scope="scope">
+							<span >{{scope.row.changed?scope.row.changed:'--'}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
-						prop="valid_num"
 					    label="有效FB账号数">
+						<template scope="scope">
+							<span >{{scope.row.valid_num?scope.row.valid_num:'--'}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
 						width="130px"
@@ -53,7 +59,7 @@
 				</el-pagination>
 			</div>
 		</div>
-		<email-group :dialogVisible="showDialog" :groupId="groupId" :name="name" @changeStatus="closeDialog"></email-group>
+		<email-group :dialogVisible="showDialog" :groupId="groupId" :typeRadio="sourceType" :name="name" @changeStatus="closeDialog"></email-group>
     </div>
 </template>
 
@@ -75,15 +81,26 @@
 				pageTotal:1,
 				dataList:[],
 				taskObj:{},
+				sourceType:1,
             }
 		},
 		components: {
 			EmailGroup
 		},
 		activated(){
+			if ( this.$route.query.type ){
+				this.sourceType = this.$route.query.type;
+			}
 			this.getTaskList();
 		},
         methods: {
+			changeType(type){
+				if ( this.sourceType == type ){
+					return;
+				}
+				this.sourceType = type;
+				this.getEmailList();
+			},
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 				this.getEmailList();
@@ -96,14 +113,16 @@
 			closeDialog(data){
 				this.showDialog = false;
 				if ( data ){
+					this.sourceType = data;
 					this.getEmailList();
 				}
 			},
             async getEmailList(){
 				var req = {
-					"token":getToken()
+					"token":getToken(),
+					"type":this.sourceType
 				}
-				const data = await email.getMailGroup(JSON.stringify(req));
+				const data = await email.getSrcGroup(JSON.stringify(req));
 				if ( data.rtn == 0 ){
 					var list = data.data.list || [];
 					for ( var i=0; i<list.length; i++ ){
@@ -147,6 +166,7 @@
 				var req = {
 					"token":getToken(),
 					"group_id":obj.group_id,
+					"type":this.sourceType
 				}
 				const data = await email.deleteGroup(JSON.stringify(req));
 				if ( data.rtn ==0 ){
@@ -169,18 +189,51 @@
 	position:absolute;
 	margin-top: 12px;
 	float:right;
-	right:22px;
+	right:18px;
 	width: 130px;
 	height: 36px;
 	background-color: #7a9e9f;
 	border-radius: 4px;
 	color: #ffffff;
 }
+.mail-mgr-tag{
+	position:absolute;
+	margin-top: 50px;
+	margin-left: 19px;
+	color:#74788d;
+	width: 100px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+	background-color:#f0f0f0;
+	border-radius: 15px;
+	cursor: pointer;
+}
+.other-mgr-tag{
+	position:absolute;
+	margin-top: 50px;
+    margin-left: 135px;
+	color:#74788d;
+	width: 100px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+	background-color:#f0f0f0;
+	border-radius: 15px;
+	cursor: pointer;
+}
+.mail-mgr-tag:hover,
+.other-mgr-tag:hover,
+.sel{
+	transition: all, .3s;
+	background-color: #7a9e9f;
+	color:#ffffff;
+}
 .list{
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:65px;
+	top:95px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{

@@ -307,7 +307,7 @@
 	position:absolute;
 	margin-top: 12px;
 	float:right;
-	right:22px;
+	right:18px;
 	width: 130px;
 	height: 36px;
 	background-color: #7a9e9f;

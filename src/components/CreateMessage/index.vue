@@ -10,12 +10,20 @@
 	center>
 		<div class="list">
 			<div class="item">
-				<font>消息内容 : </font>
-				<el-input v-model="msg" resize="none" type="textarea"/>
+				<font class="name">消息数 : </font>
+				<el-input style="margin-left:37px;" v-model="count" type="text" placeholder="群发数量"/>
 			</div>
 			<div class="item">
-				<font>消息数 : </font>
-				<el-input v-model="count" type="text"/>
+				<font class="name">重发次数 : </font>
+				<el-input v-model="retryTimes" type="text" placeholder="重发上限"/>
+			</div>
+			<div class="item">
+				<font class="name">重发间隔(天) : </font>
+				<el-input style="margin-left:5px;" v-model="retryduration" type="text" placeholder="每间隔几天，若对方没回复则再次重发"/>
+			</div>			
+			<div class="item">
+				<font style="line-height: 200px;" class="name">消息内容 : </font>
+				<el-input v-model="msg" resize="none" type="textarea"/>
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
@@ -30,9 +38,11 @@ import task from '@/api/task-mgr';
 export default {
 	data:function(){
 		return{
-			msg:"",
-			count:"",
 			currentIndex:this.dialogVisible,
+			msg:'',
+			count:'',
+			retryTimes:'',
+			retryduration:'',
 			loading:false,
 		}
 	},
@@ -62,6 +72,8 @@ export default {
 		},
 		info:function(data){//监听属性变化
 			this.count = this.info.quota || '';
+			this.retryTimes = this.info.retry_times || '';
+			this.retryduration = this.info.retry_interval || '';
 			this.msg = this.info.msg || '';
 		},
 	},
@@ -95,9 +107,11 @@ export default {
 			var req = {
 				"token":getToken(),
 				"job_id":this.job_id,
-				"msg":this.myTrim(this.msg),
-				"quota":Number(this.count || 0),
 				"msg_id": this.info.msg_id || "",
+				"msg":this.myTrim(this.msg),
+				"quota":Number(this.count || 1),
+				"retry_times":Number(this.retryTimes || 0),
+				"retry_interval":Number(this.retryduration || 0),
 			}
 			this.loading = true;
 			const data = await task.setMess(JSON.stringify(req));
@@ -128,23 +142,26 @@ export default {
 <style lang="less" scoped="">
 	.list-border {                        
 		/deep/ .el-dialog {
-			width: 540px;
-			height: 380px;
+			width: 826px;
+			height: 560px;
 		}	
 		/deep/ .el-input__inner{
-			margin-left: 65px;
 			height: 38px;
 			padding-left: 10px;
 			line-height: 38px;
 			color: #48465b;
 		}	
 		/deep/ .el-input{
-			width: 280px;
+			width: 583px;
+			margin-left: 25px;
+		}
+		/deep/ .el-textarea {
+			width: 582px;
+			margin-left: 27px;
 		}
 		/deep/ .el-textarea__inner {
-			margin-left: 65px;
 			font-size: 12px;
-			height: 100px;
+			height: 200px;
 		}
 		/deep/ .el-dialog--center .el-dialog__footer .el-button--primary,
 		/deep/ .el-dialog--center .el-dialog__footer{
@@ -155,15 +172,14 @@ export default {
     .list{
 		position: relative;
 		margin-left: 65px;
-		margin-top: 40px;
-		width: 410px;
-		height: 200px;
+		margin-top: 20px;
+		width: 736px;
+		height: 380px;
     	.item{
     		position:relative;
     		margin-top: 18px;
-		    width: 280px;
-			font{
-				position:absolute;
+		    width: 692px;
+			.name{
 				margin-left: 0px;
 				z-index: 1;
 				line-height: 38px;

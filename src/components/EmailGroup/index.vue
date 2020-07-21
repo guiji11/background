@@ -1,6 +1,6 @@
 <template>
 	<el-dialog
-	:title="groupId?'编辑邮箱组':'添加邮箱组'"
+	:title="groupId?'编辑数据源':'创建数据源'"
 	:visible.sync="currentIndex"
 	@close ="callback(false)"
 	destroy-on-close
@@ -9,12 +9,14 @@
 	class="list-borde"
 	center>
 		<div class="list">
+			<el-radio v-model="radio" label="1" @change="changeLabel()" :disabled="maildi">邮箱组</el-radio>
+			<el-radio v-model="radio" label="2" @change="changeLabel()" :disabled="fbdi">自建FB组</el-radio>
 			<div class="item">
-				<div class="name">邮箱组名称 : </div>
+				<div class="name">组名称 : </div>
 				<el-input v-model="emailName" type="text" />
 			</div>
 			<div class="item">
-				<div class="name">邮箱列表（一行一个邮箱，回车隔开多个邮箱）: </div>
+				<div class="name">{{radio==1?'邮箱列表（ 一行一个邮箱，回车隔开多个邮箱 ）:':'FB组列表（ 为一个数组，输入格式：["xx","aa"] ）'}}</div>
 				<el-input v-model="emailList" resize="none" type="textarea"/>
 			</div>
 		</div>
@@ -34,13 +36,20 @@ export default {
 			emailName:'',
 			currentIndex:this.dialogVisible,
 			loading:false,
+			radio:"1",
+			maildi:false,
+			fbdi:false,
 		}
 	},
 	props:{
 		name: {
 			type: String,
 			required: true
-		},	
+		},
+		typeRadio: {
+			type: Number,
+			required: false
+		},		
 		groupId: {
 		  type: String,
 		  required: true
@@ -52,33 +61,61 @@ export default {
 	},
 	watch:{
 		dialogVisible:function(data){//监听属性变化
+			this.maildi = false;
+			this.fbdi = false;
 			this.currentIndex = data;
 			this.emailName = this.name || '';
 			this.emailList = '';
+			this.radio = String(this.typeRadio);
+			if ( this.groupId && this.typeRadio == 1 ){
+				this.fbdi = true;
+			}
+			if ( this.groupId && this.typeRadio == 2 ){
+				this.maildi = true;
+			}
 		},
 	},
 	methods: {
+		changeLabel(){
+			this.emailList = '';
+		},
 		async complete(){
 			if ( !this.emailName ){
 				this.$message({
-					message: "请输入邮箱组名称",
+					message: "请输入组名称",
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+				return;
+			}else if ( this.radio =='2' && this.emailList && this.emailList.indexOf('[')==-1 ){
+				this.$message({
+					message: "FB组列表输入格式有误，请输入一个数组",
 					center: true,
 					type: 'error',
 					duration: 3 * 1000
 				});
 				return;
 			}
-			const list = this.myTrim(this.emailList).split('\n') || [];
+			if ( this.radio =='1' ){
+				var list = this.myTrim(this.emailList).split('\n') || [];
+			}else if ( this.radio =='2' && this.emailList ){
+				var value = this.myTrim(this.emailList);
+				var list = eval('(' + value + ')') || [];
+			}else{
+				var list = [];
+			}
 			var req = {
 				"token":getToken(),
 				"group_id":this.groupId,
+				"type":Number(this.radio),
 				"name":this.emailName,
 				"list":list,
 			}
 			this.loading = true;
-			const data = await email.addMailGroup(JSON.stringify(req));
+			const data = await email.addSrcGroup(JSON.stringify(req));
 			if ( data.rtn == 0 ){
-				this.callback(true);
+				this.callback(Number(this.radio));
 				this.loading = false;
 				this.$message({
 					message: "success",
@@ -124,7 +161,7 @@ export default {
 		}
 		/deep/ .el-textarea__inner {
 			font-size: 12px;
-			height: 230px;
+			height: 215px;
 		}
 		/deep/ .el-dialog--center .el-dialog__footer .el-button--primary,
 		/deep/ .el-dialog--center .el-dialog__footer{
@@ -140,7 +177,7 @@ export default {
 		height: 380px;
     	.item{
     		position:relative;
-    		margin-top: 18px;
+    		margin-top: 15px;
 		    width: 662px;
 			.name{
 				margin-left: 0px;

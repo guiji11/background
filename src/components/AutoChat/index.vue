@@ -11,11 +11,12 @@
 		<el-button type="primary"  class="add-reply" @click.native.prevent="addReply()">添加回复</el-button>
 		<div class="list">
 			<div class="border">
-				<div class="item" style="line-height: 50px;">
-					<span>默认回复：</span>
-					<el-input v-model="defaultWord" class="key-textarea" resize="none" style="margin-left: 28px;" type="textarea" placeholder="匹配不上关键词时自动回复"/>
-					<span class="complete" style="margin-top: 11px;" @click="defaultOpera()">保存</span>
-				</div>
+				<span class="default-complete" @click="defaultOpera()">保存</span>
+				<svg-icon iconClass="add" style="left:0px;" class="add" @click="addAns(defaultWord)"/>
+				<div style="margin-left: 22px;" class="margin item" v-for="(ite,index) in defaultWord" :key="index">
+					<span>默认回复{{index+1}} ：</span>
+					<el-input style="margin-left:5px;" v-model="ite.ans" class="key-textarea" resize="none" type="textarea"/>
+				</div>				
 			</div>
 			<div class="border" v-for="(item,index) in dataList" :key="item.id">
 				<div class="item">
@@ -43,8 +44,8 @@ export default {
 		return{
 			currentIndex:this.dialogVisible,
 			dataList:[],
-			defaultWord:"",
-			defalt_id:"",
+			defaultWord:[{"ans":""}],
+			defalt_id:'',
 		}
 	},
 	props:{
@@ -88,11 +89,13 @@ export default {
 				"id":this.defalt_id,
 				"keyword":"",
 			}
-			var arr = [];
-			if ( this.defaultWord ){
-				arr.push(this.myTrim(this.defaultWord));
+			var prodData = [];
+			for ( var i=0; i<this.defaultWord.length; i++ ){
+				if ( this.defaultWord[i].ans ){
+					prodData.push(this.myTrim(this.defaultWord[i].ans));
+				}
 			}
-			this.sendData(obj, 3, arr);
+			this.sendData(obj, 3, prodData);
 		},
 		async getChatInfo(){
 			var req = {
@@ -114,11 +117,20 @@ export default {
 					this.addReply();
 				}
 				if ( data.data.default_dialog ){
-					this.defaultWord = data.data.default_dialog.send_dialogs[0] || "";
+					var ary = [];
+					var ark = data.data.default_dialog.send_dialogs || [];
+					for ( var j=0; j<ark.length;j++){
+						ary.push({"ans":ark[j]});
+					}
+					if ( ark.length >0 ){
+						this.defaultWord = ary;
+					}else{
+						this.defaultWord = [{"ans":""}];
+					}
 					this.defalt_id = data.data.default_dialog.id || "";
 				}else{
-					this.defaultWord  = "";
-					this.defalt_id  = "";
+					this.defaultWord = [{"ans":""}];
+					this.defalt_id = '';
 				}
 			}
 		},
@@ -130,7 +142,7 @@ export default {
 					type = 2;
 				}
 			}else if ( type ==-1 && obj.id == "0" ){
-				 this.dataList.splice(this.dataList.findIndex(item => item.id === "0"), 1);
+				this.dataList.splice(this.dataList.findIndex(item => item.id === "0"), 1);
 				return;
 			}
 			var prodData = [];
@@ -139,7 +151,6 @@ export default {
 					prodData.push(this.myTrim(obj.send_dialog[i].ans));
 				}
 			}
-
 			if ( !obj.keyword ){
 				this.$message({
 					message: "请输入对方关键词",
@@ -230,15 +241,28 @@ export default {
 		overflow-y: auto;
 		.border{
 			margin-bottom: 20px;
+			.default-complete{
+				position: absolute;
+				right: 46px;
+				margin-top: 4px;
+				height: 25px;
+				width: 50px;
+				border: 1px solid #7a9e9f;
+				border-radius: 6px;
+				text-align: center;
+				line-height: 25px;
+				cursor: pointer;
+				color: #7a9e9f;
+			}
 			.item{
 				margin-bottom: 12px;
 				font-size: 12px;
 				.key-input{
-					margin-left: 5px;
+					margin-left: 15px;
 					width: 500px;
 				}
 				.key-textarea{
-					margin-left: 5px;
+					margin-left: 15px;
 					width: 500px;
 				}
 				.complete{
