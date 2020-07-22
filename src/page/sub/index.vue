@@ -23,7 +23,7 @@
 						v-if="accType==2"
 					    label="状态">
 						<template scope="scope">
-							<span :style="scope.row.status==0?'color:#3092fc':'color:#ff8f5e'">{{scope.row.status==1?'启用中':'已禁止'}}</span>
+							<span :style="scope.row.status==0?'color:#3092fc':'color:#ff8f5e'">{{scope.row.status==0?'启用中':'已禁止'}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column
@@ -31,7 +31,7 @@
 						v-if="accType==2"
 					    label="操作">
 						 <template scope="scope">
-							<button class="check-info" :style="scope.row.status==1?'color:#ff8f5e':'color:#3092fc'" @click="manageUser(scope.row)">{{scope.row.status==1?'禁用':'启用'}}</button>
+							<button class="check-info" :style="scope.row.status==0?'color:#ff8f5e':'color:#3092fc'" @click="manageUser(scope.row)">{{scope.row.status==0?'禁用':'启用'}}</button>
 							<svg-icon iconClass="delete" class="margin delete" @click="manageUser(scope.row,-2)"/>
 						</template>
 					</el-table-column>
@@ -142,7 +142,10 @@
 				if ( data.rtn ==0 ){
 					this.dataList = data.data.list || [];
 					this.dataList.sort((a,b) => a.name.localeCompare(b.name));
-					this.dataList.splice(this.dataList.findIndex(item => item.name === 'admin'), 1);
+					var index = this.dataList.findIndex(item => item.name === 'admin');
+					if ( index >-1 ){
+						this.dataList.splice(index, 1);
+					}
 				}
 			},		
         },

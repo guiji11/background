@@ -222,7 +222,7 @@ export default {
     		margin-top: 55px;
 		    width: 280px;
 			height: 38px;
-			text-align: center;
+			text-align: right;
 			font{
 				position:absolute;
 				margin-left: 0px;

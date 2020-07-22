@@ -35,7 +35,7 @@ function manage_user(data) {
 
 function assign_task(data) {                                          //授权任务给子账号
   return request({
-    url: store.getters.baseUrl + "fb_api/assign_task",
+    url: store.getters.baseUrl + "fb_api/assign_job",
     method: 'post',
     data
   })

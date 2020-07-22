@@ -72,7 +72,7 @@ export default {
 				"type":type
 			}
 			sub.addUser(JSON.stringify(req)).then(data=>{
-				if ( data.ret == 0 ){
+				if ( data.rtn == 0 ){
 					this.callback(true);
 				}else{
 					this.$message({

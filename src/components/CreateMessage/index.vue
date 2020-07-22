@@ -15,11 +15,11 @@
 			</div>
 			<div class="item">
 				<font class="name">重发次数 : </font>
-				<el-input v-model="retryTimes" type="text" placeholder="重发上限"/>
+				<el-input v-model="retryTimes" type="text" placeholder="重发上限，非必填项"/>
 			</div>
 			<div class="item">
 				<font class="name">重发间隔(天) : </font>
-				<el-input style="margin-left:5px;" v-model="retryduration" type="text" placeholder="每间隔几天，若对方没回复则再次重发"/>
+				<el-input style="margin-left:5px;" v-model="retryduration" type="text" placeholder="每间隔几天，若对方没回复则再次重发，非必填项"/>
 			</div>			
 			<div class="item">
 				<font style="line-height: 200px;" class="name">消息内容 : </font>

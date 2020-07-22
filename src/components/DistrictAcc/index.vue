@@ -1,6 +1,6 @@
 <template>
 	<el-dialog
-	title="分配客服"
+	title="分配子账号"
 	:visible.sync="currentIndex"
 	@close ="callback(false)"
 	destroy-on-close
@@ -14,7 +14,7 @@
 				<div v-for="item in dataList" :key="item.userid" :class="['tag-name',item.selType==1?'sel':'']" @click="selAcc(item)">{{item.name}}</div>
 			</div>
 			<div class="item" v-else style="text-align: center;line-height: 150px;">
-				<font>无可用的客服列表，</font>
+				<font>无可用的子账号列表，</font>
 				<font @click="mail()" style="color:#3092fc;cursor:pointer;">去添加-></font>
 			</div>
 		</div>
@@ -75,8 +75,8 @@ export default {
 			if ( data.rtn ==0 ){
 				this.dataList = data.data.list || [];
 				this.dataList.sort((a,b) => a.name.localeCompare(b.name));
-				if ( this.info.uids ){                                                            //勾选已分配客服
-					var arr = this.info.uids.split(',');
+				if ( this.info.uids ){                                                            //勾选已分配子账号
+					var arr = this.info.uids;
 					for ( var i=0; i<arr.length; i++ ){
 						var index = this.dataList.findIndex(item => item.userid === arr[i]);
 						if ( index > -1 ){
@@ -93,15 +93,6 @@ export default {
 					arr.push(this.dataList[i].userid);
 				}
 			}
-			if ( arr.length==0 ){
-				this.$message({
-					message: "请选择子账号",
-					center: true,
-					type: 'error',
-					duration: 3 * 1000
-				});
-				return;
-			}
 			var req = {
 				"token":getToken(),
 				"uids":arr,
@@ -112,12 +103,6 @@ export default {
 			if ( data.rtn == 0 ){
 				this.callback(true);
 				this.loading = false;
-				this.$message({
-					message: "success",
-					center: true,
-					type: 'success',
-					duration: 3 * 1000
-				})
 			}else {
 				this.loading = false;
 				this.$message({

@@ -18,8 +18,8 @@
 						</template>
 					</el-table-column>
 					<el-table-column
-						prop="userName"
 						v-if ="accType==1"
+						prop="userName"
 					    width="180px">
 						<template slot="header" slot-scope="scope">
 							<div class="table-item">
@@ -34,6 +34,15 @@
 								</el-select>
 							</div>
 						</template>
+					</el-table-column>
+					<el-table-column
+						v-if ="accType==2"
+					    label="分配的子账号">
+						<template scope="scope">
+							<el-tooltip effect="dark" :content="scope.row.sub" placement="top">
+								<div>{{scope.row.sub}}</div>
+							</el-tooltip>
+						</template>	
 					</el-table-column>
 					<el-table-column
 						prop="time"
@@ -74,7 +83,7 @@
 									<button class="check-info" @click="checkInfo(scope.row,'DataMess')">群发消息</button>
 									<button class="check-info" @click="checkInfo(scope.row,'DataSource')">数据源绑定</button>
 									<button class="check-info" @click="showChatDialog(scope.row)">智能回复</button>
-									<button class="check-info" @click="showSubDialog(scope.row)" v-if="accType!=1">分配客服</button>
+									<button class="check-info" @click="showSubDialog(scope.row)" v-if="accType==2">分配子账号</button>
                                 </div>
                                 <el-button slot="reference" class="popover-btn"></el-button>
                             </el-popover>
@@ -215,6 +224,19 @@
 						this.$set(list[i],"succ_send_per",succ_send_per+"%");
 						this.$set(list[i],"reply_num_per",reply_num_per+"%");
 						this.$set(list[i],"userName",this.userObj[list[i].userid]);
+						if ( list[i].uids && list[i].uids.length>0 ){                                                        
+							var arr = list[i].uids;
+							var ary = [];
+							for ( var j=0; j<arr.length; j++ ){
+								var name = this.userObj[arr[j]];
+								if ( name ){
+									ary.push(name);
+								}
+							}
+							this.$set(list[i], "sub", ary.join(','));
+						}else{
+							this.$set(list[i], "sub", '--');
+						}
 					}
 					this.dataList = list;
 				}else{
