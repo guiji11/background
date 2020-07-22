@@ -2,12 +2,14 @@
     <div class="mess">
         <h2 class="title">聊天管理</h2>
 		<div class="left-content" style="width:240px;">
+            <svg-icon iconClass="no-data" class="no-data" v-if="taskList.length==0"/>
             <div v-for="item in taskList" :key="item.job_id" :class="['task-border',item.job_id==cur_task?'sel':'']" @click="getSessionList(item)">
                 <div class="task-name">{{item.job_name}}</div>
             </div>
         </div>
 		<div class="right-content">
             <div class="left-content friend-border">
+                <svg-icon iconClass="no-data" class="no-data" v-if="cur_task&&accList.length==0"/>
                 <div v-for="item in accList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
                     <img :src="baseUrl+item.to.avt" class="acc-icon" :fid="item.from.fid" :ofid="item.to.fid" :onerror="errorImg"/>
                     <div class="acc-name">{{item.to.nickname?item.to.nickname:'--'}}</div>
@@ -15,7 +17,7 @@
                     <span v-if="item.unread_flag" class="unread"></span>
                     <svg-icon v-if="item.to.home_page" iconClass="acc-index" class="acc-index" @click.prevent.stop="openIndex(item.to.home_page)"/>
                 </div>
-                <div class="table-pagination" v-show="this.cur_task">
+                <div class="table-pagination" v-show="cur_task">
                     <el-pagination
                         @current-change="handleCurrentChange"
                         :current-page.sync="currentPage"
@@ -129,7 +131,6 @@
                 this.cur_task = obj.job_id;
                 this.currentPage = 1;
                 this.pageTotal = 1;
-                this.accList = [];
                 this.chatList = [];
                 this.cur_session = {};
                 var req = {
@@ -422,6 +423,14 @@
         box-shadow: 0 6px 10px -4px rgba(0,0,0,.15);
         overflow-y: auto;
         overflow-x: hidden;
+        .no-data{
+            position: absolute;
+            width: 87px;
+            height: 87px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
         .task-border{
             position: relative;
             border-bottom: 1px solid #f6f6f6;
