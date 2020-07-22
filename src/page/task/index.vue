@@ -233,7 +233,7 @@
 									ary.push(name);
 								}
 							}
-							this.$set(list[i], "sub", ary.join(','));
+							this.$set(list[i], "sub", ary.join('，'));
 						}else{
 							this.$set(list[i], "sub", '--');
 						}

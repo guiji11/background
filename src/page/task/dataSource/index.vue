@@ -3,19 +3,6 @@
 		<svg-icon iconClass="return" class="return" @click.native.prevent="returnPage()"/>
 		<h2 class="title">任务管理 / 数据源绑定</h2>
 		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">绑定数据源</el-button>
-		<div class="table-title">
-			<div class="table-item">
-				<font class="title">任务名</font>
-				<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
-					<el-option
-						v-for="item in taskList"
-						:key="item.job_id"
-						:label="item.job_name"
-						:value="item.job_id" >
-					</el-option>
-				</el-select>
-			</div>
-		</div>
 		<div class="list">
 			<div class="table-content">
 				<el-table
@@ -24,6 +11,23 @@
 					element-loading-text="Loading"
 					:data="dataList"
 					tooltip-effect="dark">
+					<el-table-column
+						prop="name"
+					    width="200px">
+						<template slot="header" slot-scope="scope">
+							<div class="table-item">
+								<font class="title">任务名</font>
+								<el-select v-model="taskId" placeholder="全部" @change="changeTask" class="select-border"  >
+									<el-option
+										v-for="item in taskList"
+										:key="item.job_id"
+										:label="item.job_name"
+										:value="item.job_id" >
+									</el-option>
+								</el-select>
+							</div>
+						</template>
+					</el-table-column>
 					<el-table-column
 						prop="time"
 					    label="时间">
@@ -110,15 +114,12 @@
 		components: {
 			BindSource,
 		},
-		created(){
-			this.getTaskList();
-		},
         mounted(){
 			if ( this.accType ==3 ){
 				this.$router.push({ name: 'MessageMgr' });
 			}
-			this.getSourceList();
 			document.getElementById('taskMgr').classList.add("is-active");
+			this.getTaskList();
 		},
 		destroyed(){
 			document.getElementById('taskMgr').classList.remove("is-active");
@@ -195,9 +196,11 @@
 					var list = data.data.list || [];
 					list.sort(function(a,b){
                         return b.status - a.status;
-                    });
+					});
+					const obj = this.taskList.find( value =>value.job_id == this.jobId);
 					for ( var i=0; i<list.length;i++ ){
 						this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD'));
+						this.$set(list[i],"name",obj.job_name);
 					}
 					this.dataList = list;
 				}
@@ -225,6 +228,7 @@
 						duration: 3 * 1000
 					});
 				}
+				this.getSourceList();
             }			
         },
     }
@@ -257,39 +261,11 @@
 	border-radius: 4px;
 	color: #ffffff;
 }
-.table-title{
-    position: relative;
-    top: 55px;
-    left: 0px;
-    right: 320px;
-    height: 34px;
-	.table-item{
-		margin-right: 21px;
-		float:left;
-		.title{
-			position: relative;
-			margin-left: 19px;
-			padding-top: 15px;
-			margin-right: 9px;
-			font-weight: 500;
-			font-size: 12px;
-			font-stretch: normal;
-			letter-spacing: 0.36px;
-			color: #595d6e;
-		}
-		.select-border{
-			width: 136px;
-			height: 34px;
-			background-color: #ffffff;
-			border-radius: 4px;
-		}
-	}
-}
 .list{
 	position: absolute;
 	left:19px;
 	right:19px;
-	top:105px;
+	top:65px;
 	bottom:20px;
 	border-radius: 4px;
 	.table-content{
@@ -319,6 +295,29 @@
 		}
 		.margin{
 			margin-left: 12px;
+		}
+		.table-item{
+			padding-left: 0px;
+			margin-right: 21px;
+			float:left;
+			.title{
+				position: relative;
+				margin-left: 0px;
+				padding-top: 15px;
+				margin-right: 0px;
+				font-weight: 500;
+				font-size: 12px;
+				font-stretch: normal;
+				letter-spacing: 0.36px;
+				color: #595d6e;
+			}
+			.select-border {
+				padding-left: 10px;
+				width: 116px;
+				height: 34px;
+				background-color: #ffffff;
+				border-radius: 4px;
+			}
 		}
 		/deep/ .el-table__row:hover .delete{
 			display:initial;
