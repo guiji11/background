@@ -1,6 +1,6 @@
 <template>
 	<el-dialog
-	title="发送消息统计"
+	title="发消息统计"
 	:visible.sync="currentIndex"
 	@close ="callback()"
 	destroy-on-close
@@ -33,7 +33,7 @@
 					</el-table-column>
 					<el-table-column
 					    prop="succ_send_num"
-					    label="成功发送数">
+					    label="发送成功数">
 					</el-table-column>
 					<el-table-column
 					    prop="dispatch_failed_num"

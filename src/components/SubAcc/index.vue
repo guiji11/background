@@ -19,7 +19,7 @@
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
-			<el-button type="primary" @click.native.prevent="complete()">确 定</el-button>
+			<el-button type="primary" :disabled="loading" @click.native.prevent="complete()">确 定</el-button>
 		</span>
 	</el-dialog>
 </template>
@@ -31,6 +31,7 @@ export default {
 	data:function(){
 		return{
 			currentIndex:this.dialogVisible,
+			loading:false,
 			accType:getUserType(),
 			username:"",
 			psw:"",
@@ -45,6 +46,7 @@ export default {
 	watch:{
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
+			this.loading = false;
 		},
 	},
 	methods: {
@@ -71,10 +73,13 @@ export default {
 				"pwd":this.myTrim(this.psw),
 				"type":type
 			}
+			this.loading = true;
 			sub.addUser(JSON.stringify(req)).then(data=>{
 				if ( data.rtn == 0 ){
 					this.callback(true);
+					this.loading = false;
 				}else{
+					this.loading = false;
 					this.$message({
 						message: data.msg,
 						center: true,

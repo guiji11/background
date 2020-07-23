@@ -74,7 +74,7 @@
 							<svg-icon iconClass="more" class="info-icon"/>
                             <el-popover
                             placement="left"
-                            width="79"
+                            width="90"
                             :visible-arrow="false"
                             transition="fade-transform"
                             trigger="hover">
@@ -233,7 +233,7 @@
 									ary.push(name);
 								}
 							}
-							this.$set(list[i], "sub", ary.join('，'));
+							this.$set(list[i], "sub", ary.join('，')||'--');
 						}else{
 							this.$set(list[i], "sub", '--');
 						}

@@ -9,7 +9,7 @@
         </div>
 		<div class="right-content">
             <div class="left-content friend-border">
-                <svg-icon iconClass="no-data" class="no-data" v-if="cur_task&&accList.length==0"/>
+                <svg-icon iconClass="no-data" class="no-data" v-if="taskList.length>0&&accList.length==0"/>
                 <div v-for="item in accList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
                     <img :src="baseUrl+item.to.avt" class="acc-icon" :fid="item.from.fid" :ofid="item.to.fid" :onerror="errorImg"/>
                     <div class="acc-name">{{item.to.nickname?item.to.nickname:'--'}}</div>
@@ -114,6 +114,16 @@
 				const data = await task.getTaskList(JSON.stringify(req));
 				if ( data.rtn ==0 ){
 					this.taskList = data.data.list || [];
+				}else{
+					if ( data.msg.indexOf('nvalid token')!=-1 ){
+						data.msg = "身份验证过期，请重新登录！";
+					}
+					this.$message({
+						message: data.msg,
+						center: true,
+						type: 'error',
+						duration: 3 * 1000
+					});
 				}
             },	
             sessionListPage(){
@@ -342,7 +352,7 @@
                     console.log("连接错误");
                 },
                 this.socket.onsend = (param) => {
-                    console.log("send="+param);                   
+                    //console.log("send="+param);                   
                     this.socket.send(this.str2ab(param));
                 },
                 this.socket.onmessage = (data) => {

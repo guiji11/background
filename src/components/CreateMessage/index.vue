@@ -10,8 +10,8 @@
 	center>
 		<div class="list">
 			<div class="item">
-				<font class="name">消息数 : </font>
-				<el-input style="margin-left:37px;" v-model="count" type="text" placeholder="群发数量"/>
+				<font class="name">目标消息数 : </font>
+				<el-input style="margin-left:14px;" v-model="count" type="text" placeholder="群发数量"/>
 			</div>
 			<div class="item">
 				<font class="name">重发次数 : </font>
@@ -19,7 +19,7 @@
 			</div>
 			<div class="item">
 				<font class="name">重发间隔(天) : </font>
-				<el-input style="margin-left:5px;" v-model="retryduration" type="text" placeholder="每间隔几天，若对方没回复则再次重发，非必填项"/>
+				<el-input style="margin-left:6px;" v-model="retryduration" type="text" placeholder="每间隔几天，若对方没回复则再次重发，非必填项"/>
 			</div>			
 			<div class="item">
 				<font style="line-height: 200px;" class="name">消息内容 : </font>
@@ -153,11 +153,11 @@ export default {
 		}	
 		/deep/ .el-input{
 			width: 583px;
-			margin-left: 25px;
+			margin-left: 27px;
 		}
 		/deep/ .el-textarea {
 			width: 582px;
-			margin-left: 27px;
+			margin-left: 28px;
 		}
 		/deep/ .el-textarea__inner {
 			font-size: 12px;
@@ -178,7 +178,7 @@ export default {
     	.item{
     		position:relative;
     		margin-top: 18px;
-		    width: 692px;
+		    width: 705px;
 			.name{
 				margin-left: 0px;
 				z-index: 1;

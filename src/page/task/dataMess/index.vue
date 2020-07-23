@@ -1,7 +1,7 @@
 <template>
     <div class="fillcontain">
 		<svg-icon iconClass="return" class="return" @click.native.prevent="returnPage()"/>
-		<h2 class="title">任务管理 / 消息管理</h2>
+		<h2 class="title">任务管理 / 群发消息</h2>
 		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">创建消息</el-button>
 		<div class="table-title">
 			<div class="table-item">
