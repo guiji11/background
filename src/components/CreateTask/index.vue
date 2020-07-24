@@ -41,6 +41,7 @@ export default {
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
 			this.taskName = "";
+			this.loading = false;
 		},
 	},
 	methods: {

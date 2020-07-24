@@ -69,6 +69,7 @@ export default {
 			this.currentIndex = data;
 			this.count = this.info.quota || '';
 			this.msg = this.info.msg || '';
+			this.loading = false;
 		},
 		info:function(data){//监听属性变化
 			this.count = this.info.quota || '';

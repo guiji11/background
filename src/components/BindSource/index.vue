@@ -86,6 +86,7 @@ export default {
 			this.taskName = "";
 			this.radio = '3';
 			if ( data ){
+				this.loading = false;
 				this.getEmailList(1);
 				this.getEmailList(2);
 			}
