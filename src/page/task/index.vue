@@ -2,6 +2,30 @@
     <div class="fillcontain">
 		<h2 class="title">任务管理</h2>
 		<el-button class="create-mess-btn" @click.native.prevent="showDialog()">创建任务</el-button>
+		<div class="card-list">
+			<div class="card-border margin-right">
+				<div class="card-content">
+					<svg-icon iconClass="send-total" class="card-icon"/>
+					<div class="card-value">{{total_send}}</div>
+				</div>
+				<div class="card-name">目标发送总数</div>
+				<div class="mess-detail" @click="setMessCount()">设置</div>
+			</div>
+			<div class="card-border margin-right" style="flex-grow: 1;">
+				<div class="card-content">
+					<svg-icon iconClass="send-succ" class="card-icon"/>
+					<div class="card-value">{{total_success}}</div>
+				</div>
+				<div class="card-name">成功发送数</div>
+			</div>
+			<div class="card-border">
+				<div class="card-content">
+					<svg-icon iconClass="acc-mess" class="card-icon"/>
+					<div class="card-value">{{total_reply}}</div>
+				</div>
+				<div class="card-name">回复总数</div>
+			</div>
+		</div>
 		<div class="table-list">
 			<div class="table-content">
 				<el-table
@@ -103,6 +127,7 @@
 			</div>
 		</div>
 		<create-task :dialogVisible="showCreateTask" @changeStatus="closeDialog"></create-task>
+		<set-mess-count :dialogVisible="showSetCount" :count="total_send" @changeStatus="closeDialog"></set-mess-count>
 		<auto-chat :jobId = "jobId" :dialogVisible="showAutoChat" @changeStatus="closeDialog"></auto-chat>
 		<district-acc :info = "info" :dialogVisible="showSub" @changeStatus="closeDialog"></district-acc>
     </div>
@@ -112,6 +137,7 @@
 	import AutoChat from '@/components/AutoChat';
 	import CreateTask from '@/components/CreateTask';
 	import DistrictAcc from '@/components/DistrictAcc';
+	import SetMessCount from '@/components/SetMessCount';
 	import task from '@/api/task-mgr';
 	import sub from '@/api/sub';
 	import { getToken, setJobId, getUserType, getUserId } from '@/utils/auth';
@@ -126,6 +152,7 @@
 				showCreateTask:false,
 				showAutoChat:false,
 				showSub:false,
+				showSetCount:false,
 				jobId:'',
 				currentPage:1,
 				pageSize:100,
@@ -135,12 +162,16 @@
 				userObj:{},
 				userid:'',
 				info:{},
+				total_send:0,
+				total_success:0,
+				total_reply:0,
             }
 		},
 		components: {
 			CreateTask,
 			AutoChat,
-			DistrictAcc
+			DistrictAcc,
+			SetMessCount
 		},
 		computed: {
 			key: function(){
@@ -152,9 +183,13 @@
 				this.$router.push({ name: 'MessageMgr' });
 			}
 			this.getAllUser();
+			this.getMessStat();
 			document.getElementById('taskMgr').classList.add("is-active");
 		},
         methods: {
+			setMessCount(){
+				this.showSetCount = true;
+			},
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 			},
@@ -177,7 +212,9 @@
 				this.showCreateTask = false;
 				this.showAutoChat = false;
 				this.showSub = false;
+				this.showSetCount = false;
 				if ( data ){
+					this.getMessStat();
 					this.getTaskList();
 				}
 			},
@@ -198,6 +235,17 @@
 					this.allUser.unshift({"userid":"","name":"全部"});
 				}
 				this.getTaskList();
+			},
+			async getMessStat(){
+				var req = {
+					"token":getToken()
+				}
+				const data = await task.getUserSendStat(JSON.stringify(req));
+				if ( data.rtn ==0 ){
+					this.total_send = data.data.total_send_num || 0;
+					this.total_success = data.data.succ_send_num || 0;
+					this.total_reply = data.data.reply_num || 0;
+				}
 			},
             async getTaskList(){
 				if ( this.accType !=1 ){
@@ -274,11 +322,76 @@
 	border-radius: 4px;
 	color: #ffffff;
 }
+.card-list{
+    position: relative;
+    margin: 0px 19px;
+    top: 65px;
+    display: flex;
+    cursor: default;
+    height: 138px;
+	.card-border{
+		position:relative;
+		width: 31%;
+		height: 100%;
+		background-color: #ffffff;
+		box-shadow: 0 6px 10px -4px rgba(0,0,0,.15);
+		border-radius: 6px;
+		.card-content{
+			position:relative;
+			border-bottom: 1px solid #eeeeee;
+			padding-top: 15px;
+			width: 90%;
+			margin-left: auto;
+			margin-right: auto;
+			height: 77px;
+			.card-value{
+				position: absolute;
+				top: 35px;
+				right: 0px;
+				height: 30px;
+				line-height: 30px;
+				color: #74788d;
+				font-size: 30px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.card-icon{
+				margin-left: 10px;
+				color: #768492;
+				height:42px;
+				width:42px;
+				padding-top: 15px;
+			}
+		}
+		.card-name{
+			margin-left: auto;
+			margin-right: auto;
+			padding-top: 12px;
+			color: #a49e93;
+			font-size: 14px;
+			font-weight: 500;
+			width: 90%;
+		}
+	}
+	.mess-detail{
+		position: absolute;
+		right: 4%;
+		width: 25px;
+		height: 22px;
+		bottom: 12px;
+		cursor: pointer;
+		color: rgb(48, 146, 252);
+	}
+	.margin-right{
+		margin-right: 30px;
+	}
+}
 .table-list /deep/{
     position: absolute;
     left: 19px;
     right: 19px;
-    top: 65px;
+    top: 222px;
     bottom: 20px;
     border-radius: 4px;
 	.table-content{

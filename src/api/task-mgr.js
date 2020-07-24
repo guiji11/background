@@ -15,6 +15,8 @@ const func = {
   setAutoDialog:set_auto_dialog,
   getAutoDialog:get_auto_dialog,
   setJobRuntime:set_job_runtime,
+  getUserSendStat:get_user_send_stat,
+  setUserSendNum:set_user_send_msg_num
 }
 
 function create_task(data) {                                                    //创建任务
@@ -108,6 +110,22 @@ function get_auto_dialog(data) {                                                
 function set_job_runtime(data) {                                                 //设置消息下发时间
   return request({
     url: url + "fb_api/set_job_runtime",
+    method: 'post',
+    data
+  })
+}
+
+function get_user_send_stat(data) {                                               //查询用户消息发送总数
+  return request({
+    url: url + "fb_api/get_user_send_stat",
+    method: 'post',
+    data
+  })
+}
+
+function set_user_send_msg_num(data) {                                             //设置用户消息发送总数
+  return request({
+    url: url + "fb_api/set_user_send_msg_num",
     method: 'post',
     data
   })
