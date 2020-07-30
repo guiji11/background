@@ -6,6 +6,7 @@ const func = {
   getServerInfo:get_server_info,
   getMessInfo:get_mess_info,
   setServerCc:set_server_cc,
+  getSuspendInfo:get_suspend_info,
 }
 
 function get_server_list(data) {
@@ -35,6 +36,14 @@ function get_mess_info(data) {
 function set_server_cc(data) {
   return request({
     url: store.getters.baseUrl+"fb_api/set_server_cc",                //编辑机器并发数
+    method: 'post',
+    data,
+  })
+}
+
+function get_suspend_info(data) {
+  return request({
+    url: store.getters.baseUrl+"fb_api/get_suspend_acc",             //查询封号详情
     method: 'post',
     data,
   })

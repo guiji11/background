@@ -15,6 +15,7 @@
 					<div class="card-value">{{total_suspend}}</div>
 				</div>
 				<div class="card-name">封号总数</div>
+				<svg-icon iconClass="detail" class="mess-detail" @click="checkMessInfo(1)"/>
 			</div>
 			<div class="card-border">
 				<div class="card-content">
@@ -22,7 +23,7 @@
 					<div class="card-value">{{total_msg}}</div>
 				</div>
 				<div class="card-name">发消息数</div>
-				<svg-icon iconClass="detail" class="mess-detail" @click="checkMessInfo"/>
+				<svg-icon iconClass="detail" class="mess-detail" @click="checkMessInfo(2)"/>
 			</div>
 		</div>
 		<div class="list">
@@ -91,6 +92,7 @@
 		<server-info :dialogVisible="showServeDialog" :hostname="hostname" @changeStatus="closeDialog"></server-info>
 		<server-cc :dialogVisible="showServeCcDialog" :hostname="hostname" :ccNum="cc_num" @changeStatus="closeDialog"></server-cc>
 		<mess-info :dialogVisible="showMessDialog" @changeStatus="closeDialog"></mess-info>
+		<suspend-acc :dialogVisible="showSuspendDialog" @changeStatus="closeDialog"></suspend-acc>
     </div>
 </template>
 
@@ -100,6 +102,7 @@
 	import ServerInfo from '@/components/ServerInfo';
 	import MessInfo from '@/components/MessInfo';
 	import ServerCc from '@/components/ServerCc';
+	import SuspendAcc from '@/components/SuspendAcc';
     export default {
         data(){
             return {
@@ -108,6 +111,7 @@
 				showServeDialog:false,
 				showServeCcDialog:false,
 				showMessDialog:false,
+				showSuspendDialog:false,
 				currentPage:1,
 				pageSize:100,
 				pageTotal:1,
@@ -123,7 +127,8 @@
 		components: {
 			ServerInfo,
 			MessInfo,
-			ServerCc
+			ServerCc,
+			SuspendAcc
 		},
         mounted(){
 			if ( this.accType ==2 ){
@@ -153,13 +158,18 @@
 			closeDialog(data){
 				this.showServeDialog = false;
 				this.showMessDialog = false;
+				this.showSuspendDialog = false;
 				if ( this.showServeCcDialog && data ){
 					this.$set(this.cur_sel_obj,"cc_num",data);
 				}
 				this.showServeCcDialog = false;
 			},
-			checkMessInfo(){
-				this.showMessDialog = true;
+			checkMessInfo(type){
+				if ( type==1 ){
+					this.showSuspendDialog = true;
+				}else{
+					this.showMessDialog = true;
+				}
 			},
             async getServerList(){
 				var req = {

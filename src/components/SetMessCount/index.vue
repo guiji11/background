@@ -32,8 +32,8 @@ export default {
 		}
 	},
 	props:{
-		count: {
-		  type: Number,
+		info: {
+		  type: Object,
 		  required: true
 		},
 		dialogVisible: {
@@ -44,7 +44,7 @@ export default {
 	watch:{
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
-			this.num = this.count || "";
+			this.num = this.info.total_send_num || "";
 			this.loading = false;
 		},
 	},
@@ -52,6 +52,7 @@ export default {
 		async complete(){
 			var req = {
 				"token":getToken(),
+				"userid":this.info.userid,
 				"num":Number(this.num || 0 )
 			}
 			this.loading = true;

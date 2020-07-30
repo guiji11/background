@@ -6,10 +6,9 @@
 			<div class="card-border margin-right">
 				<div class="card-content">
 					<svg-icon iconClass="send-total" class="card-icon"/>
-					<div class="card-value">{{total_send}}</div>
+					<div class="card-value" :style="total_success>total_send?'color:#ff8f5e':''">{{total_send}}</div>
 				</div>
 				<div class="card-name">目标发送总数</div>
-				<div class="mess-detail" @click="setMessCount()">设置</div>
 			</div>
 			<div class="card-border margin-right" style="flex-grow: 1;">
 				<div class="card-content">
@@ -127,7 +126,6 @@
 			</div>
 		</div>
 		<create-task :dialogVisible="showCreateTask" @changeStatus="closeDialog"></create-task>
-		<set-mess-count :dialogVisible="showSetCount" :count="total_send" @changeStatus="closeDialog"></set-mess-count>
 		<auto-chat :jobId = "jobId" :dialogVisible="showAutoChat" @changeStatus="closeDialog"></auto-chat>
 		<district-acc :info = "info" :dialogVisible="showSub" @changeStatus="closeDialog"></district-acc>
     </div>
@@ -137,10 +135,9 @@
 	import AutoChat from '@/components/AutoChat';
 	import CreateTask from '@/components/CreateTask';
 	import DistrictAcc from '@/components/DistrictAcc';
-	import SetMessCount from '@/components/SetMessCount';
 	import task from '@/api/task-mgr';
 	import sub from '@/api/sub';
-	import { getToken, setJobId, getUserType, getUserId } from '@/utils/auth';
+	import { getToken, setJobId, getUserType, getUserId, formatCash } from '@/utils/auth';
 	import moment from 'moment';
     export default {
 		name:'TaskMgr',
@@ -152,7 +149,6 @@
 				showCreateTask:false,
 				showAutoChat:false,
 				showSub:false,
-				showSetCount:false,
 				jobId:'',
 				currentPage:1,
 				pageSize:100,
@@ -171,7 +167,6 @@
 			CreateTask,
 			AutoChat,
 			DistrictAcc,
-			SetMessCount
 		},
 		computed: {
 			key: function(){
@@ -187,9 +182,6 @@
 			document.getElementById('taskMgr').classList.add("is-active");
 		},
         methods: {
-			setMessCount(){
-				this.showSetCount = true;
-			},
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 			},
@@ -212,7 +204,6 @@
 				this.showCreateTask = false;
 				this.showAutoChat = false;
 				this.showSub = false;
-				this.showSetCount = false;
 				if ( data ){
 					this.getMessStat();
 					this.getTaskList();

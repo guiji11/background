@@ -15,7 +15,7 @@
 				<svg-icon iconClass="add" style="left:0px;" class="add" @click="addAns(defaultWord)"/>
 				<div style="margin-left: 22px;" class="margin item" v-for="(ite,index) in defaultWord" :key="index">
 					<span>默认回复{{index+1}} ：</span>
-					<el-input style="margin-left:5px;" v-model="ite.ans" class="key-textarea" resize="none" type="textarea"/>
+					<el-input style="margin-left:5px;" v-model="ite.ans" class="key-textarea" resize="none" type="textarea" placeholder="匹配不上关键词时默认回复"/>
 				</div>				
 			</div>
 			<div class="border" v-for="(item,index) in dataList" :key="item.id">

@@ -19,6 +19,11 @@
 					    label="密码">
 					</el-table-column>
 					<el-table-column
+						prop="total_send_num"
+						v-if="accType==1"
+					    label="目标发送总数">
+					</el-table-column>
+					<el-table-column
 						prop="status"
 						v-if="accType==2"
 					    label="状态">
@@ -35,6 +40,14 @@
 							<svg-icon iconClass="delete" class="margin delete" @click="manageUser(scope.row,-2)"/>
 						</template>
 					</el-table-column>
+					<el-table-column
+						width="100px"
+						v-if="accType==1"
+					    label="操作">
+						 <template scope="scope">
+							<button class="check-info" @click="setMessCount(scope.row)">设置</button>
+						</template>
+					</el-table-column>
 				</el-table>
 			</div>
 			<div class="table-pagination">
@@ -49,11 +62,13 @@
 			</div>
 		</div>
 		<sub-acc :dialogVisible="showSourceDialog" @changeStatus="closeDialog"></sub-acc>
+		<set-mess-count :dialogVisible="showSetCount" :info="info" @changeStatus="closeDialog"></set-mess-count>
     </div>
 </template>
 
 <script>
 	import SubAcc from '@/components/SubAcc';
+	import SetMessCount from '@/components/SetMessCount';
 	import sub from '@/api/sub'; 
 	import { getToken, getUserType } from '@/utils/auth';
 	import moment from 'moment';
@@ -68,12 +83,15 @@
 				pageTotal:1,
 				dataList:[],
 				taskId:"",
+				info:{},
 				showSourceDialog:false,
+				showSetCount:false,
 				accType:getUserType(),
             }
 		},
 		components: {
 			SubAcc,
+			SetMessCount
 		},
         mounted(){
 			if ( this.accType ==3 ){
@@ -82,6 +100,10 @@
 			this.getAllUser();
 		},
         methods: {
+			setMessCount(obj){
+				this.info = obj;
+				this.showSetCount = true;
+			},
 			handleCurrentChange(val){                           
 				this.currentPage = val;
 			},
@@ -89,6 +111,7 @@
 				this.showSourceDialog = true;
 			},
 			closeDialog(data){
+				this.showSetCount = false;
 				this.showSourceDialog = false;
 				if ( data ){
 					this.getAllUser();
@@ -142,10 +165,10 @@
 				if ( data.rtn ==0 ){
 					this.dataList = data.data.list || [];
 					this.dataList.sort((a,b) => a.name.localeCompare(b.name));
-					var index = this.dataList.findIndex(item => item.name === 'admin');
-					if ( index >-1 ){
-						this.dataList.splice(index, 1);
-					}
+					// var index = this.dataList.findIndex(item => item.name === 'admin');
+					// if ( index >-1 ){
+					// 	this.dataList.splice(index, 1);
+					// }
 				}
 			},		
         },

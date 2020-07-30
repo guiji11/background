@@ -54,3 +54,16 @@ export function getJobId() {
   return Cookies.get(Userjobid)
 }
 
+export function formatCash(str) {
+  var arr = [];
+  var counter = 0;
+  str = (str || 0).toString().split("");
+  for (var i = str.length - 1; i >= 0; i--) {
+    counter++;
+    arr.unshift(str[i]);
+    if (!(counter % 3) && i !== 0) {
+      arr.unshift(",");
+    }
+  }
+  return arr.join("");
+}

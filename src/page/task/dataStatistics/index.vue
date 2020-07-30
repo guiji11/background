@@ -235,7 +235,7 @@
 					{"name":"回复率","width":3,"type":"line","color":"#a0650b","data":this.reply_per},
 				];
 				var barArr=[
-					{"name":"发送总量","type":"bar","color":"#fb6340","data":this.send_num},
+					{"name":"发送总量","type":"bar","color":"#68b3c8","data":this.send_num},
 					{"name":"成功数量","type":"bar","color":"#5e72e4","data":this.succ_send_sum},
 					{"name":"回复数量","type":"bar","color":"#a0650b","data":this.reply_num},
 				];

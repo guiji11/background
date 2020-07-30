@@ -56,8 +56,10 @@
 						</template>
 					</el-table-column>
 					<el-table-column
-						prop="quota"
 					    label="目标发送量">
+						<template scope="scope">
+							<span :style="scope.row.succ_send_num>scope.row.quota?'color:#ff8f5e':''">{{scope.row.quota}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
 						prop="succ_send_num"
@@ -72,7 +74,7 @@
 					    label="回复率">
 					</el-table-column>
 					<el-table-column
-					    label="状态">
+					    label="状态">:
 						<template scope="scope">
 							<span :style="scope.row.status==1?'color:#3092fc':'color:#ff8f5e'">{{scope.row.status==1?'进行中':'暂停'}}</span>
 						</template>
