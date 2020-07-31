@@ -233,9 +233,9 @@
 				}
 				const data = await task.getUserSendStat(JSON.stringify(req));
 				if ( data.rtn ==0 ){
-					this.total_send = data.data.total_send_num || 0;
-					this.total_success = data.data.succ_send_num || 0;
-					this.total_reply = data.data.reply_num || 0;
+					this.total_send = formatCash(data.data.total_send_num || 0);
+					this.total_success = formatCash(data.data.succ_send_num || 0);
+					this.total_reply = formatCash(data.data.reply_num || 0);
 				}
 			},
             async getTaskList(){

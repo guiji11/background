@@ -51,6 +51,12 @@
 					    prop="succ_send_per"
 					    label="成功率">
 					</el-table-column>
+					<el-table-column
+					    label="导出">
+						<template scope="scope">
+							<button class="check-info" @click="exportInfo(scope.row)">失败记录</button>
+						</template>
+					</el-table-column>
 				</el-table>
 			</div>
 		</div>
@@ -60,6 +66,7 @@
 <script>
 import home from '@/api/home';
 import { getToken } from '@/utils/auth'
+import FileSaver from 'file-saver'
 export default {
 	data:function(){
 		return{
@@ -98,6 +105,30 @@ export default {
 		},
 		getLocalTime(nS) { 
 			return new Date(parseInt(nS) * 1000);  
+		},
+		async exportInfo(){
+			var req = {
+				"token":getToken(),
+				"begin":this.begin,
+				"end":this.end,
+				"export":1
+			}
+			const data = await home.getMessInfo(JSON.stringify(req));
+			if ( data.rtn == 0 ){
+				var list = data.data.failed_list || [];
+				var prodData = list.map(function (item) {
+					return JSON.stringify(item)+'\n'; 
+				}); 
+				var blob = new Blob(prodData, {type: "text/plain;charset=utf-8"});
+				FileSaver.saveAs(blob, 'failed.txt');
+			}else{
+				this.$message({
+					message: data.msg,
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+			}
 		},
 		async getMessInfo(){
 			var req = {
@@ -153,6 +184,16 @@ export default {
 	        border-radius: 4px;
 			height: 420px;
 			margin-top: 15px;
+			.check-info{
+				position: relative;
+				padding: 4px 13px;
+				background-color: #ffffff;
+				border: solid 1px #e7e7e7;
+				border-radius: 19px;
+				font-size: 12px;
+				color: #828f9c;
+				cursor:pointer;
+			}
 		    .table-dark{
 	            position: relative;
 	            width:97%;

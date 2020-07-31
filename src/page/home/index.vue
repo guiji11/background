@@ -98,7 +98,7 @@
 
 <script>
 	import home from '@/api/home';
-	import { getToken, getUserType} from '@/utils/auth'
+	import { getToken, getUserType, formatCash} from '@/utils/auth'
 	import ServerInfo from '@/components/ServerInfo';
 	import MessInfo from '@/components/MessInfo';
 	import ServerCc from '@/components/ServerCc';
@@ -178,9 +178,9 @@
 				const data = await home.getServerList(JSON.stringify(req));
 				if ( data.rtn == 0 ){
 					this.dataList = data.data.list || [];
-					this.total_online = data.data.total_online;
-					this.total_suspend = data.data.total_suspend;
-					this.total_msg = data.data.total_succ_send_num;
+					this.total_online = formatCash(data.data.total_online);
+					this.total_suspend = formatCash(data.data.total_suspend);
+					this.total_msg = formatCash(data.data.total_succ_send_num);
 				}else if ( this.accType ==1 ){
 					this.$message({
 						message: data.msg,

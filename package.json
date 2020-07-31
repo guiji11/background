@@ -12,6 +12,7 @@
     "core-js": "^3.6.4",
     "echarts": "^4.8.0",
     "element-ui": "^2.13.2",
+    "file-saver": "^2.0.2",
     "js-cookie": "^2.2.1",
     "moment": "^2.26.0",
     "postcss-less-loader": "0.1.0-alpha.2",

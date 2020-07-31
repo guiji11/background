@@ -17,7 +17,9 @@
 			</div>
 			<div class="item">
 				<div class="name">{{radio==1?'邮箱列表（ 一行一个邮箱，回车隔开多个邮箱 ）:':'FB组列表（ 为一个数组，输入格式：["xx","aa"] ）'}}</div>
-				<el-input v-model="emailList" resize="none" type="textarea"/>
+				<button class="file-btn">{{fileName}}</button>
+				<input type="file" class="file" @change="importFile()" ref="inputer" accept="text/plain"/>
+				<el-input v-model="emailList" resize="none" type="textarea" />
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
@@ -39,6 +41,7 @@ export default {
 			radio:"1",
 			maildi:false,
 			fbdi:false,
+			fileName:'导入Txt',
 		}
 	},
 	props:{
@@ -79,6 +82,23 @@ export default {
 	methods: {
 		changeLabel(){
 			this.emailList = '';
+		},
+		importFile(){
+			if ( !this.$refs.inputer.files ){
+				return;
+			}
+			var self = this;
+			const reader = new FileReader();
+			reader.readAsText(this.$refs.inputer.files[0], "UTF-8");
+			reader.onload = function(e){
+				self.fileName = '解析中';
+				setTimeout(function(){
+					self.emailList = e.target.result;
+					self.$nextTick(function(){
+						self.fileName = '导入Txt';
+					});
+				},500);
+			};
 		},
 		async complete(){
 			if ( !this.emailName ){
@@ -189,6 +209,26 @@ export default {
 				font-stretch: normal;
 				letter-spacing: 0.36px;
 				color: #74788d;
+			}
+			.file-btn{
+				position: absolute;
+				top: 6px;
+				right: 0px;
+				height: 25px;
+				width: 68px;
+				color: #74788d;
+				border-radius: 5px;
+				font-size: 12px;
+			}
+			.file{
+				position: absolute;
+				top: 6px;
+				right: 0px;
+				height: 25px;
+				width: 68px;
+				opacity: 0;
+				font-size: 0;
+				cursor: pointer;
 			}
     	}
     }
