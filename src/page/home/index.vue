@@ -95,7 +95,6 @@
 		<suspend-acc :dialogVisible="showSuspendDialog" @changeStatus="closeDialog"></suspend-acc>
     </div>
 </template>
-
 <script>
 	import home from '@/api/home';
 	import { getToken, getUserType, formatCash} from '@/utils/auth'

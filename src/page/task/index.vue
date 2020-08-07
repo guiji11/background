@@ -6,7 +6,7 @@
 			<div class="card-border margin-right">
 				<div class="card-content">
 					<svg-icon iconClass="send-total" class="card-icon"/>
-					<div class="card-value" :style="total_success>total_send?'color:#ff8f5e':''">{{total_send}}</div>
+					<div class="card-value" :style="overNum?'color:#ff8f5e':''">{{total_send}}</div>
 				</div>
 				<div class="card-name">目标发送总数</div>
 			</div>
@@ -161,6 +161,7 @@
 				total_send:0,
 				total_success:0,
 				total_reply:0,
+				overNum:false,
             }
 		},
 		components: {
@@ -233,6 +234,9 @@
 				}
 				const data = await task.getUserSendStat(JSON.stringify(req));
 				if ( data.rtn ==0 ){
+					if ( data.data.succ_send_num >=data.data.total_send_num ){
+						this.overNum = true;
+					}
 					this.total_send = formatCash(data.data.total_send_num || 0);
 					this.total_success = formatCash(data.data.succ_send_num || 0);
 					this.total_reply = formatCash(data.data.reply_num || 0);

@@ -58,7 +58,7 @@
 					<el-table-column
 					    label="目标发送量">
 						<template scope="scope">
-							<span :style="scope.row.succ_send_num>scope.row.quota?'color:#ff8f5e':''">{{scope.row.quota}}</span>
+							<span :style="scope.row.succ_send_num>=scope.row.quota?'color:#ff8f5e':''">{{scope.row.quota}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column
