@@ -158,7 +158,7 @@
 				this.getEmailList();
 			},
 			deleteGroup(obj){
-				MessageBox.confirm('是否删除该邮箱组？', '', {
+				MessageBox.confirm('是否删除该数据？', '', {
 				confirmButtonText: '删除',
 				showCancelButton:false,
 				type: 'warning'

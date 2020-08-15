@@ -88,9 +88,9 @@ export default {
 					duration: 3 * 1000
 				});
 				return;
-			}else if ( this.msg.indexOf('http')!=-1 ){
+			}else if ( this.msg.indexOf('http')!=-1 || this.msg.indexOf('www')!=-1){
 				this.$message({
-					message: "消息内容不能包含http链接",
+					message: "消息内容不能包含Url链接",
 					center: true,
 					type: 'error',
 					duration: 3 * 1000

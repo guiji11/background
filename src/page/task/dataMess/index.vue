@@ -196,7 +196,7 @@
 				this.getMessList();
             },
 			returnPage(){
-				this.$router.push({ name: "TaskMgr" }); 
+				this.$router.go(-1);
 			},
 			manageMess(obj,status){
 				if ( !status ){
