@@ -18,8 +18,8 @@
 			<div class="item">
 				<div class="name">{{radio==1?'邮箱列表（ 一行一个邮箱，回车隔开多个邮箱 ）:':'FB组列表（ 为一个数组，输入格式：["xx","aa"] ）'}}</div>
 				<button class="file-btn">{{fileName}}</button>
-				<input type="file" class="file" @change="importFile()" ref="inputer" accept="text/plain"/>
-				<el-input v-model="emailList" resize="none" type="textarea" />
+				<input type="file" class="file" @change="importFile()" ref="inputer" accept="text/plain" multiple="multiple"/>
+				<el-input v-model="emailList" resize="none" type="textarea" @change="clearFile()"/>
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
@@ -42,6 +42,8 @@ export default {
 			maildi:false,
 			fbdi:false,
 			fileName:'导入Txt',
+			count:0,
+			otherValue:'',
 		}
 	},
 	props:{
@@ -70,6 +72,7 @@ export default {
 			this.currentIndex = data;
 			this.emailName = this.name || '';
 			this.emailList = '';
+			this.otherValue ='';
 			this.radio = String(this.typeRadio);
 			if ( this.groupId && this.typeRadio == 1 ){
 				this.fbdi = true;
@@ -82,22 +85,41 @@ export default {
 	methods: {
 		changeLabel(){
 			this.emailList = '';
+			this.otherValue ='';
+		},
+		clearFile(){
+			this.otherValue = this.emailList;
 		},
 		importFile(){
 			if ( !this.$refs.inputer.files ){
 				return;
 			}
+			this.count = 0;
+			var files = this.$refs.inputer.files;
+			for ( var i=0; i<files.length; i++){
+				this.readFiles(files[i], files.length);
+			}
+			this.$refs.inputer.value = null;
+		},
+		readFiles(files, length){
 			var self = this;
 			const reader = new FileReader();
-			reader.readAsText(this.$refs.inputer.files[0], "UTF-8");
+			reader.readAsText(files, "UTF-8");
 			reader.onload = function(e){
 				self.fileName = '解析中';
-				setTimeout(function(){
-					self.emailList = e.target.result;
-					self.$nextTick(function(){
-						self.fileName = '导入Txt';
-					});
-				},500);
+				self.count++;
+				self.otherValue += e.target.result;
+				if ( self.count== length ){
+					setTimeout(function(){
+						if ( self.radio == 2 ){
+							self.otherValue = self.otherValue.replace(/\]\[/g,',');							
+						}
+						self.emailList = self.otherValue;
+						self.$nextTick(function(){
+							self.fileName = '导入Txt';
+						});
+					},500);
+				}
 			};
 		},
 		async complete(){

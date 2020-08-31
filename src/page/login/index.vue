@@ -75,6 +75,8 @@
 		background-image: url("../../../public/background.png");
 		opacity: .9;
 		background-color: #5e5e5e;
+		background-size: cover;
+    	background-position: 50%;
 	}
 	.manage_tip{
 		position: absolute;

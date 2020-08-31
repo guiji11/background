@@ -28,15 +28,19 @@
 					height="421px"
 					class="table-dark">
 					<el-table-column
+						width="120px"
 					    prop="time"
-					    label="时间">
+					    label="封号时间">
+					</el-table-column>
+					<el-table-column
+					    prop="live_time"
+					    label="存活时间">
 					</el-table-column>
 					<el-table-column
 					    prop="acc"
 					    label="账号">
 					</el-table-column>
 					<el-table-column
-					    width="55px"
 					    prop="host"
 					    label="Host">
 					</el-table-column>
@@ -129,6 +133,8 @@ export default {
 				var list = data.data || [];
 				for ( var i=0; i<list.length;i++ ){
 					this.$set(list[i],"time",moment(list[i].ts*1000).format('YYYY-MM-DD HH:mm'));
+					var time = Math.round((list[i].ts-list[i].reg_ts)/60/60/24)+'天';
+					this.$set(list[i],"live_time",time);
 				}
 				this.dataList = list;
 			}
@@ -139,8 +145,8 @@ export default {
 
 <style lang="less" scoped>
 	.list-border /deep/{                        
-		.el-dialog {
-			width: 826px;
+		/deep/ .el-dialog {
+			width: 876px;
 			height: 560px;
 		}
     }
@@ -148,7 +154,7 @@ export default {
 	    position: relative;
 	    margin-left: 47px;
 	    margin-top: 10px;
-	    width: 736px;
+	    width: 786px;
 	    height: 480px;
     	.chip-title{
     		position: relative;
