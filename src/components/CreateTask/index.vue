@@ -46,6 +46,15 @@ export default {
 	},
 	methods: {
 		async complete(){
+			if ( !this.taskName ){
+				this.$message({
+					message: "请输入任务名",
+					center: true,
+					type: 'error',
+					duration: 3 * 1000
+				});
+				return;
+			}
 			var req = {
 				"token":getToken(),
 				"job_name":this.taskName

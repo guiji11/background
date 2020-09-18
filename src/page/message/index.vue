@@ -11,7 +11,7 @@
             <div class="left-content friend-border">
                 <svg-icon iconClass="no-data" class="no-data" v-if="taskList.length>0&&accList.length==0"/>
                 <div v-for="item in accList" :key="item.id" :class="['acc-border',item.id==cur_session.id?'sel':'',item.from.online==1?'':'gray']" @click="getMessageList(item,false)">
-                    <img :src="baseUrl+item.to.avt" class="acc-icon" :fid="item.from.fid" :ofid="item.to.fid" :onerror="errorImg"/>
+                    <img v-lazy="baseUrl+item.to.avt" class="acc-icon" :fid="item.from.fid" :ofid="item.to.fid" :onerror="errorImg"/>
                     <div class="acc-name">{{item.to.nickname?item.to.nickname:'--'}}</div>
                     <div class="msg-name">{{item.latest_msg}}</div>
                     <span v-if="item.unread_flag" class="unread"></span>

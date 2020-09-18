@@ -33,12 +33,18 @@
 					    label="封号时间">
 					</el-table-column>
 					<el-table-column
+						width="75px"
 					    prop="live_time"
 					    label="存活时间">
 					</el-table-column>
 					<el-table-column
-					    prop="acc"
-					    label="账号">
+						width="75px"
+					    prop="send_num"
+					    label="打招呼数">
+					</el-table-column>
+					<el-table-column
+					    prop="succ_send_num"
+					    label="成功打招呼数">
 					</el-table-column>
 					<el-table-column
 					    prop="host"
@@ -64,7 +70,10 @@
 						width="85px"
 					    label="截图">
 						<template scope="scope">
-							<img style="position: absolute;top:5px;cursor:pointer;height:30px;" :src="scope.row.snapshot_url" @click="snapshot(scope.row.snapshot_url)" />
+							<el-tooltip effect="dark" placement="left">
+								<img slot="content" :src="scope.row.snapshot_url" style="width:1000px;"/>
+								<img style="position: absolute;top:5px;height:30px;" v-lazy="scope.row.snapshot_url"/>
+							</el-tooltip>
 						</template>	
 					</el-table-column>
 				</el-table>
@@ -80,7 +89,7 @@ import moment from 'moment';
 export default {
 	data:function(){
 		return{
-			currentIndex:this.dialogVisible,
+			currentIndex:true,
 			listLoading:true,
 			dataList:[],
 			timeArr:'',
@@ -88,21 +97,10 @@ export default {
 			end:0,
 		}
 	},
-	props:{
-		dialogVisible: {
-		  type: Boolean,
-		  required: true
-		},
-	},
-	watch:{
-		dialogVisible:function(data){//监听属性变化
-			this.currentIndex = data;
-			if ( this.currentIndex ){
-				var start = this.getLocalTime(new Date().getTime()/1000-60*60*24);
-				this.timeArr=[start,new Date()];
-				this.timeChange();
-			}
-		},
+	created(){
+		var start = this.getLocalTime(new Date().getTime()/1000-60*60*24);
+		this.timeArr=[start,new Date()];
+		this.timeChange();
 	},
 	methods: {
 		callback(){		

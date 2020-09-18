@@ -10,8 +10,12 @@
 	center>
 		<div class="list">
 			<div class="item">
-				<font>并发数 : </font>
+				<font>IPV6并发数 : </font>
 				<el-input v-model="taskName" type="text"/>
+			</div>
+			<div class="item">
+				<font>IPV4并发数 : </font>
+				<el-input v-model="taskIpv4" type="text"/>
 			</div>
 		</div>
 		<span slot="footer" class="dialog-footer">
@@ -27,11 +31,16 @@ export default {
 	data:function(){
 		return{
 			taskName:0,
+			taskIpv4:0,
 			currentIndex:this.dialogVisible,
 		}
 	},
 	props:{
 		ccNum: {
+		  type: Number,
+		  required: true
+		},
+		ccNumIpv4: {
 		  type: Number,
 		  required: true
 		},
@@ -48,6 +57,7 @@ export default {
 		dialogVisible:function(data){//监听属性变化
 			this.currentIndex = data;
 			this.taskName = this.ccNum;
+			this.taskIpv4 = this.ccNumIpv4;
 		},
 	},
 	methods: {
@@ -55,11 +65,12 @@ export default {
 			var req = {
 				"token":getToken(),
 				"host":this.hostname,
-				"cc_num":Number(this.taskName)
+				"cc_num":Number(this.taskName),
+				"ipv4_cc_num":Number(this.taskIpv4),
 			}
 			const data = await home.setServerCc(JSON.stringify(req));
 			if ( data.rtn == 0 ){
-				this.callback(Number(this.taskName));
+				this.callback(true);
 			}else {
 				this.$message({
 					message: data.msg,
@@ -84,7 +95,7 @@ export default {
 			height: 360px;
 		}	
 		/deep/ .el-input__inner{
-			margin-left: 55px;
+			margin-left: 78px;
 			height: 38px;
 			padding-left: 10px;
 			line-height: 38px;

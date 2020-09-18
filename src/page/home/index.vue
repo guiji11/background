@@ -41,12 +41,17 @@
 						</template>
 					</el-table-column>
 					<el-table-column
-						prop="cc_num"
-					    label="机器并发数">
+					    label="IPV6并发数/运行数/在线数">
+						<template scope="scope">
+							<span>{{scope.row.cc_num+"/"+scope.row.runningcount+"/"+scope.row.online}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
-						prop="online"
-					    label="在线数">
+						prop="ipv4_cc_num"
+					    label="IPV4并发数/运行数/在线数">
+						<template scope="scope">
+							<span>{{scope.row.ipv4_cc_num+"/"+scope.row.ipv4_runningcount+"/"+scope.row.ipv4_online}}</span>
+						</template>
 					</el-table-column>
 					<el-table-column
 						prop="today_suspend_num"
@@ -90,9 +95,9 @@
 			</div>
 		</div>
 		<server-info :dialogVisible="showServeDialog" :hostname="hostname" @changeStatus="closeDialog"></server-info>
-		<server-cc :dialogVisible="showServeCcDialog" :hostname="hostname" :ccNum="cc_num" @changeStatus="closeDialog"></server-cc>
+		<server-cc :dialogVisible="showServeCcDialog" :hostname="hostname" :ccNum="cc_num" :ccNumIpv4="cc_ipv4" @changeStatus="closeDialog"></server-cc>
 		<mess-info :dialogVisible="showMessDialog" @changeStatus="closeDialog"></mess-info>
-		<suspend-acc :dialogVisible="showSuspendDialog" @changeStatus="closeDialog"></suspend-acc>
+		<suspend-acc v-if="showSuspendDialog" @changeStatus="closeDialog"></suspend-acc>
     </div>
 </template>
 <script>
@@ -120,7 +125,7 @@
 				total_suspend:0,
 				total_msg:0,
 				cc_num:0,
-				cur_sel_obj:{},
+				cc_ipv4:0,
             }
 		},
 		components: {
@@ -150,8 +155,8 @@
 			},
 			editCc(data){
 				this.hostname = data.hostname;
-				this.cc_num = data.cc_num;
-				this.cur_sel_obj = data;
+				this.cc_num = data.cc_num || 0;
+				this.cc_ipv4 = data.ipv4_cc_num ||0;
 				this.showServeCcDialog = true;
 			},
 			closeDialog(data){
@@ -159,7 +164,7 @@
 				this.showMessDialog = false;
 				this.showSuspendDialog = false;
 				if ( this.showServeCcDialog && data ){
-					this.$set(this.cur_sel_obj,"cc_num",data);
+					this.getServerList();
 				}
 				this.showServeCcDialog = false;
 			},
