@@ -22,12 +22,24 @@
 					    label="时间">
 					</el-table-column>
 					<el-table-column
+					    prop="send_num"
+					    label="下发消息数">
+					</el-table-column>
+					<el-table-column
 					    prop="succ_send_num"
-					    label="发消息数">
+					    label="成功发消息数">
 					</el-table-column>
 					<el-table-column
 					    prop="reply_num"
 					    label="回复数">
+					</el-table-column>
+					<el-table-column
+					    prop="reply_num_per"
+					    label="回复率">
+					</el-table-column>
+					<el-table-column
+					    prop="succ_send_per"
+					    label="成功率">
 					</el-table-column>
 					<el-table-column
 					    prop="suspend_num"
@@ -80,7 +92,20 @@ export default {
 			const data = await home.getServerInfo(JSON.stringify(req));
 			this.listLoading = false;
 			if ( data.rtn == 0 ){
-				this.dataList = data.data.list || [];
+				var list = data.data.list || [];
+				for ( var i=0; i<list.length;i++ ){
+					var succ_send_per = 0;
+					var reply_num_per = 0;
+					if ( list[i].send_num >0 ){
+						succ_send_per = Math.round(list[i].succ_send_num/list[i].send_num*1000)/10;
+					}
+					if ( list[i].succ_send_num >0 ){
+						reply_num_per = Math.round(list[i].reply_num/list[i].succ_send_num*1000)/10;
+					}
+					this.$set(list[i],"succ_send_per",succ_send_per+"%");
+					this.$set(list[i],"reply_num_per",reply_num_per+"%");
+				}
+				this.dataList = list;
 			}
 		}
 	}	

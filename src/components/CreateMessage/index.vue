@@ -44,6 +44,7 @@ export default {
 			retryTimes:'',
 			retryduration:'',
 			loading:false,
+			sendLen:0,
 		}
 	},
 	props:{
@@ -79,7 +80,8 @@ export default {
 		},
 	},
 	methods: {
-		async complete(){
+		complete(){
+			this.sendLen = 0;
 			if ( !this.msg ){
 				this.$message({
 					message: "请输入消息内容",
@@ -105,20 +107,41 @@ export default {
 				})
 				return;
 			}
+			if ( this.msg.indexOf('#####')!=-1 ){
+				var msg = this.msg.replace(/\n/g,' ');
+				var arr = msg.split('#####');
+				for( var i=0; i<arr.length; i++){
+					this.sendData(arr[i], arr.length);
+				}
+			}else{
+				this.sendData(this.msg, 1);
+			}
+		},
+		async sendData(msg, len){
+			this.sendLen++;
+			this.loading = true;
+			if ( !msg ){
+				if ( this.sendLen == len ){
+					this.callback(true);
+					this.loading = false;
+				}
+				return;
+			}
 			var req = {
 				"token":getToken(),
 				"job_id":this.job_id,
 				"msg_id": this.info.msg_id || "",
-				"msg":this.myTrim(this.msg),
+				"msg":this.myTrim(msg),
 				"quota":Number(this.count || 1),
 				"retry_times":Number(this.retryTimes || 0),
 				"retry_interval":Number(this.retryduration || 0),
 			}
-			this.loading = true;
 			const data = await task.setMess(JSON.stringify(req));
 			if ( data.rtn == 0 ){
-				this.callback(true);
-				this.loading = false;
+				if ( this.sendLen == len ){
+					this.callback(true);
+					this.loading = false;
+				}
 			}else {
 				this.loading = false;
 				this.$message({
